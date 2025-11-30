@@ -18,6 +18,11 @@
 - Q: Should the system validate that JSON structure from historic years matches the expected data model before ingestion? → A: Yes - system MUST validate JSON structure compatibility before processing any records
 - Q: How should the system handle ingestion of multiple JSON sources - sequential or parallel? → A: Sequential processing by default to maintain transaction integrity and clear error attribution, with option for parallel processing if performance requires it
 - Q: What happens if one historic JSON source fails to download or validate while others succeed? → A: System should continue processing remaining sources and log detailed error information for failed sources
+- Q: How should database credentials (connection strings, passwords) be managed for both local development and Supabase deployment? → A: Environment variables with secure defaults (DATABASE_URL, DB_PASSWORD)
+- Q: How should the system handle special characters, Unicode, and emoji in text fields? → A: UTF-8 encoding with PostgreSQL TEXT/JSONB (default Unicode support)
+- Q: How should the system handle empty arrays or null values for nested collections (agendaItems, actionItems, decisionItems, discussionPoints)? → A: Store empty arrays as empty JSONB arrays [], NULL as NULL (preserve semantics)
+- Q: How should the system handle JSON records with circular references or deeply nested structures? → A: Detect and skip records with circular references, log warning (max depth check)
+- Q: What format and destination should be used for logging (errors, conflicts, validation failures, progress)? → A: Structured JSON logs to stdout/stderr (container-friendly)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -102,8 +107,8 @@ A developer needs to run the ingestion pipeline locally for development, testing
 
 **Acceptance Scenarios**:
 
-1. **Given** a developer has a local PostgreSQL database, **When** following the local setup instructions, **Then** the ingestion script can be installed, configured, and executed successfully
-2. **Given** the ingestion script is configured for local use, **When** running the script, **Then** it connects to the local database and processes data without errors
+1. **Given** a developer has a local PostgreSQL database, **When** following the local setup instructions, **Then** the ingestion script can be installed, configured with environment variables (DATABASE_URL, DB_PASSWORD), and executed successfully
+2. **Given** the ingestion script is configured for local use with environment variables, **When** running the script, **Then** it connects to the local database and processes data without errors
 3. **Given** local execution completes, **When** querying the local database, **Then** data is correctly inserted and can be verified through standard SQL queries
 
 ---
@@ -119,7 +124,7 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 **Acceptance Scenarios**:
 
 1. **Given** containerization instructions are provided, **When** building the container image, **Then** it includes all necessary dependencies and can be built without errors
-2. **Given** a container image is built, **When** deploying to Supabase, **Then** the container runs successfully and connects to the Supabase database
+2. **Given** a container image is built, **When** deploying to Supabase with environment variables configured, **Then** the container runs successfully and connects to the Supabase database using provided credentials
 3. **Given** the containerized job is deployed, **When** executing the ingestion, **Then** it processes data correctly and logs execution status and any errors
 
 ---
@@ -131,11 +136,11 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - What happens when a required field (e.g., workgroup_id) is missing from a JSON record? → Record is skipped with detailed logging (validation failure logged, processing continues)
 - How does the system handle extremely large JSON files or datasets with thousands of records? → System processes files sequentially, handling large datasets within reasonable time limits (e.g., under 10 minutes for all sources combined)
 - What happens when database connection fails mid-ingestion? → System should fail with clear error message; previously committed records from successfully processed sources remain in database (per-record transactions ensure partial success is preserved)
-- How does the system handle JSON records with circular references or deeply nested structures?
+- How does the system handle JSON records with circular references or deeply nested structures? → Detect and skip records with circular references, log warning with record identifier (max depth check prevents parsing failures, processing continues for valid records)
 - What happens when UUIDs in the source JSON conflict with existing database records? → UPSERT behavior applies - existing records are updated with new data (last-write-wins)
-- How does the system handle special characters, unicode, or emoji in text fields?
+- How does the system handle special characters, unicode, or emoji in text fields? → UTF-8 encoding with PostgreSQL TEXT/JSONB (default Unicode support preserves all characters)
 - What happens when date fields are in unexpected formats or invalid dates? → Invalid date records are skipped with detailed logging, valid records continue processing
-- How does the system handle empty arrays or null values for nested collections (agendaItems, actionItems, etc.)?
+- How does the system handle empty arrays or null values for nested collections (agendaItems, actionItems, etc.)? → Store empty arrays as empty JSONB arrays [], NULL as NULL (preserve semantics to distinguish between "no items" and "not provided")
 - What happens when the same meeting record exists in multiple year files with different data? → Last-write-wins based on ingestion order, with most recent ingestion taking precedence
 - How does the system handle JSON sources processed in different orders (e.g., 2022, then 2024, then 2023)? → Order should not affect final data state due to UPSERT behavior, but processing order may affect which version of overlapping records is final
 - What happens when JSON sources contain workgroups or meetings that overlap across different years? → UPSERT behavior applies - existing records are updated with new data, maintaining single source of truth per unique identifier
@@ -149,7 +154,7 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - **FR-002A**: System MUST verify that JSON contains required top-level fields (workgroup, workgroup_id, meetingInfo, agendaItems, tags, type) matching expected structure
 - **FR-002B**: System MUST process multiple JSON sources sequentially by default, maintaining transaction integrity and clear error attribution
 - **FR-002C**: System MUST continue processing remaining valid sources if one JSON source fails to download or validate
-- **FR-002D**: System MUST log detailed error information for failed JSON sources (source URL, error type, error message, timestamp)
+- **FR-002D**: System MUST log detailed error information for failed JSON sources (source URL, error type, error message, timestamp) in structured JSON format to stdout/stderr
 - **FR-003**: System MUST create database tables for workgroups, meetings, agenda_items, action_items, decision_items, and discussion_points
 - **FR-004**: System MUST use UUID primary keys for all tables
 - **FR-005**: System MUST establish foreign key relationships between tables (meetings → workgroups, agenda_items → meetings, action_items/decision_items/discussion_points → agenda_items)
@@ -160,12 +165,17 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - **FR-010**: System MUST store nested objects (e.g., workingDocs, timestampedVideo) in JSONB columns
 - **FR-011**: System MUST handle missing or null fields gracefully without failing
 - **FR-012**: System MUST implement idempotent insertion logic using UPSERT (INSERT ON CONFLICT DO UPDATE) with last-write-wins strategy to prevent duplicate records and update existing records when re-ingesting, handling overlapping workgroups and meetings across multiple sources without creating duplicates
-- **FR-013**: System MUST log conflicts (e.g., unique constraint violations) with details including record identifier, conflict type, timestamp, and source URL
+- **FR-013**: System MUST log conflicts (e.g., unique constraint violations) with details including record identifier, conflict type, timestamp, and source URL in structured JSON format to stdout/stderr
 - **FR-014**: System MUST continue processing remaining records even if individual records fail
-- **FR-023**: System MUST skip records that fail validation (malformed structure, invalid UUIDs, invalid dates) and log full error details including record identifier, validation errors, and problematic field values
+- **FR-023**: System MUST skip records that fail validation (malformed structure, invalid UUIDs, invalid dates) and log full error details including record identifier, validation errors, and problematic field values in structured JSON format to stdout/stderr
 - **FR-024**: System MUST process each meeting record in its own atomic transaction, including all nested entities (agenda items, action items, decision items, discussion points), committing on success and rolling back on failure to ensure data consistency and referential integrity
 - **FR-015**: System MUST provide clear instructions for local setup and execution
 - **FR-016**: System MUST provide clear instructions for containerized deployment to Supabase
+- **FR-027**: System MUST use environment variables (DATABASE_URL, DB_PASSWORD) for database credential management in both local and containerized environments, with secure defaults and clear documentation
+- **FR-028**: System MUST handle special characters, Unicode, and emoji in text fields using UTF-8 encoding with PostgreSQL TEXT/JSONB columns (default Unicode support)
+- **FR-029**: System MUST handle empty arrays and null values for nested collections (agendaItems, actionItems, decisionItems, discussionPoints) by storing empty arrays as empty JSONB arrays `[]` and NULL as NULL to preserve data semantics
+- **FR-030**: System MUST detect and skip records with circular references or excessive nesting depth, logging warnings with record identifier and issue details, while continuing processing for other valid records
+- **FR-031**: System MUST output structured JSON logs to stdout/stderr (container-friendly format) for all logging events including errors, conflicts, validation failures, and progress updates
 - **FR-017**: System MUST include SQL DDL comments explaining table purposes and column meanings
 - **FR-018**: System MUST validate data types (e.g., dates, UUIDs) before insertion
 - **FR-019**: System MUST handle workgroup records by pre-processing all unique workgroups from the JSON dataset first (create if not exists, update if exists based on workgroup_id) before processing any meetings
