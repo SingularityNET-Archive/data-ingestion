@@ -3,7 +3,21 @@
 **Feature Branch**: `001-meeting-summaries-ingestion`  
 **Created**: 2025-11-30  
 **Status**: Draft  
-**Input**: User description: "Analyze the meeting-summaries JSON dataset at https://raw.githubusercontent.com/SingularityNET-Archive/SingularityNET-Archive/refs/heads/main/Data/Snet-Ambassador-Program/Meeting-Summaries/2025/meeting-summaries-array.json, infer its complete structure, and design a fully normalized but JSON-flexible Supabase/PostgreSQL schema. Produce all SQL DDL including table definitions, UUID primary keys, foreign keys, comments, and recommended indexes (including GIN for JSONB). Create tables for workgroups, meetings, agenda items, action items, decision items, and discussion points, storing the original JSON in a raw column for provenance. Then generate a Python FastAPI ingestion script that downloads the JSON, validates its structure, inserts data into the schema, extracts normalized fields, populates relational tables, and stores nested objects in JSONB. Ensure the ingestion code is idempotent, logs conflicts, and gracefully handles missing fields. Finally, output instructions for how to run the ingestion locally and deploy it to Supabase as a containerized job."
+**Input**: User description: "Analyze the meeting-summaries JSON dataset at https://raw.githubusercontent.com/SingularityNET-Archive/SingularityNET-Archive/refs/heads/main/Data/Snet-Ambassador-Program/Meeting-Summaries/2025/meeting-summaries-array.json, infer its complete structure, and design a fully normalized but JSON-flexible Supabase/PostgreSQL schema. Produce all SQL DDL including table definitions, UUID primary keys, foreign keys, comments, and recommended indexes (including GIN for JSONB). Create tables for workgroups, meetings, agenda items, action items, decision items, and discussion points, storing the original JSON in a raw column for provenance. Then generate a Python FastAPI ingestion script that downloads the JSON, validates its structure, inserts data into the schema, extracts normalized fields, populates relational tables, and stores nested objects in JSONB. Ensure the ingestion code is idempotent, logs conflicts, and gracefully handles missing fields. Finally, output instructions for how to run the ingestion locally and deploy it to Supabase as a containerized job. I want to include historic data from these sources as well. https://raw.githubusercontent.com/SingularityNET-Archive/SingularityNET-Archive/refs/heads/main/Data/Snet-Ambassador-Program/Meeting-Summaries/2024/meeting-summaries-array.json https://raw.githubusercontent.com/SingularityNET-Archive/SingularityNET-Archive/refs/heads/main/Data/Snet-Ambassador-Program/Meeting-Summaries/2023/meeting-summaries-array.json https://raw.githubusercontent.com/SingularityNET-Archive/SingularityNET-Archive/refs/heads/main/Data/Snet-Ambassador-Program/Meeting-Summaries/2022/meeting-summaries-array.json"
+
+## Clarifications
+
+### Session 2025-01-27
+
+- Q: What idempotency conflict resolution strategy should be used when the same record is processed multiple times? → A: UPSERT (INSERT ON CONFLICT DO UPDATE) with last-write-wins - existing records are updated with new data when re-ingesting
+- Q: How should the system handle records that fail validation (malformed structure, invalid UUIDs, invalid dates)? → A: Skip invalid records with detailed logging - skip invalid records, log full error details (record ID, validation errors, field values) and continue processing
+- Q: What transaction boundaries should be used for data insertion? → A: Per-record transactions - each record processed in its own transaction, commit on success, rollback on failure
+- Q: What is the atomicity scope for nested entities (meetings with agenda items, action items, decision items, discussion points)? → A: Per-meeting atomic transactions - each meeting with all nested entities processed atomically as a single unit
+- Q: When should workgroups be created relative to meetings? → A: Pre-process all workgroups first - extract all unique workgroups from JSON, create/update them, then process meetings
+- Q: What should happen if the same meeting record exists in multiple year files (e.g., a 2024 meeting that was also included in 2023 data)? → A: UPSERT behavior applies - last-write-wins based on ingestion order, with the most recent ingestion taking precedence
+- Q: Should the system validate that JSON structure from historic years matches the expected data model before ingestion? → A: Yes - system MUST validate JSON structure compatibility before processing any records
+- Q: How should the system handle ingestion of multiple JSON sources - sequential or parallel? → A: Sequential processing by default to maintain transaction integrity and clear error attribution, with option for parallel processing if performance requires it
+- Q: What happens if one historic JSON source fails to download or validate while others succeed? → A: System should continue processing remaining sources and log detailed error information for failed sources
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -25,22 +39,44 @@ A data engineer needs to create a normalized database schema that can store meet
 
 ### User Story 2 - JSON Data Ingestion (Priority: P1)
 
-A data engineer needs to download meeting summary JSON data from a remote URL, validate its structure, and insert it into the database schema with normalized fields extracted and nested objects stored in JSONB columns.
+A data engineer needs to download meeting summary JSON data from multiple remote URLs (2025 current data and historic data from 2022, 2023, 2024), validate its structure compatibility with the data model, and insert it into the database schema with normalized fields extracted and nested objects stored in JSONB columns.
 
-**Why this priority**: Data ingestion is the core functionality that transforms raw JSON into structured database records. This must work correctly for the system to have any value.
+**Why this priority**: Data ingestion is the core functionality that transforms raw JSON into structured database records. This must work correctly for the system to have any value, and must support both current and historic data sources.
 
-**Independent Test**: Can be fully tested by running the ingestion script against a test database with sample JSON data and verifying that all records are inserted correctly with normalized fields populated and original JSON preserved. The ingestion delivers structured, queryable data from unstructured JSON sources.
+**Independent Test**: Can be fully tested by running the ingestion script against a test database with sample JSON data from multiple sources and verifying that all records are inserted correctly with normalized fields populated and original JSON preserved. The ingestion delivers structured, queryable data from unstructured JSON sources across multiple years.
 
 **Acceptance Scenarios**:
 
-1. **Given** a valid JSON URL is provided, **When** the ingestion script runs, **Then** the JSON is downloaded successfully and parsed without errors
-2. **Given** valid JSON data is downloaded, **When** the ingestion script processes each record, **Then** workgroups are created/updated, meetings are linked to workgroups, and agenda items with their nested action items, decision items, and discussion points are properly inserted
-3. **Given** JSON data contains nested objects (e.g., workingDocs, timestampedVideo), **When** the ingestion script processes records, **Then** these nested objects are stored in JSONB columns while normalized fields are extracted to relational columns
-4. **Given** JSON data contains missing or null fields, **When** the ingestion script processes records, **Then** missing fields are handled gracefully without causing errors, and NULL values are inserted where appropriate
+1. **Given** multiple valid JSON URLs are provided (2025, 2024, 2023, 2022), **When** the ingestion script runs, **Then** all JSON files are downloaded successfully and parsed without errors
+2. **Given** JSON data from multiple sources is downloaded, **When** the ingestion script validates the structure, **Then** JSON structure compatibility with the existing data model is verified before processing any records from each source
+3. **Given** valid JSON data is downloaded, **When** the ingestion script processes the data, **Then** all unique workgroups are extracted and created/updated first, then meetings are linked to workgroups, and agenda items with their nested action items, decision items, and discussion points are properly inserted atomically (each meeting and all its nested entities processed in a single transaction)
+4. **Given** JSON data contains nested objects (e.g., workingDocs, timestampedVideo), **When** the ingestion script processes records, **Then** these nested objects are stored in JSONB columns while normalized fields are extracted to relational columns
+5. **Given** JSON data contains missing or null fields, **When** the ingestion script processes records, **Then** missing fields are handled gracefully without causing errors, and NULL values are inserted where appropriate
+6. **Given** JSON data contains invalid records (malformed structure, invalid UUIDs, invalid dates), **When** the ingestion script processes records, **Then** invalid records are skipped, full error details are logged (record ID, validation errors, field values), and processing continues for remaining valid records
+7. **Given** one JSON source fails to download or validate while others succeed, **When** the ingestion script processes multiple sources, **Then** processing continues for remaining valid sources, and detailed error information is logged for the failed source
+8. **Given** JSON data from multiple sources contains overlapping workgroups or meetings, **When** the ingestion script processes all sources, **Then** all unique workgroups are created/updated first, then all meetings are processed with proper linking, maintaining referential integrity without duplicates
 
 ---
 
-### User Story 3 - Idempotent Data Processing (Priority: P2)
+### User Story 3 - JSON Structure Compatibility Validation (Priority: P1)
+
+A data engineer needs to verify that JSON data from different years (2022, 2023, 2024, 2025) is compatible with the existing data model before attempting ingestion, preventing data corruption and ensuring consistent schema handling.
+
+**Why this priority**: Structure validation prevents data corruption and ensures all data sources can be processed using the same schema and ingestion logic. This validation must occur before any database operations to avoid partial failures.
+
+**Independent Test**: Can be fully tested by running validation checks against sample JSON from each year and verifying that structure matches expected data model (workgroup, workgroup_id, meetingInfo, agendaItems, tags, type fields). The validation ensures data compatibility and prevents schema mismatches.
+
+**Acceptance Scenarios**:
+
+1. **Given** JSON data from any year (2022, 2023, 2024, 2025), **When** structure validation runs, **Then** the JSON is verified to contain required top-level fields (workgroup, workgroup_id, meetingInfo, agendaItems, tags, type) matching the expected data model
+2. **Given** JSON data contains nested structures (meetingInfo, agendaItems), **When** structure validation runs, **Then** nested field structures are verified to match expected patterns (meetingInfo.date, meetingInfo.host, agendaItems[].actionItems, etc.)
+3. **Given** JSON data contains optional fields that may be missing or null, **When** structure validation runs, **Then** missing optional fields are accepted without causing validation failure
+4. **Given** JSON data contains structural variations or additional fields not in the base model, **When** structure validation runs, **Then** additional fields are accepted (schema is flexible), but core required fields must be present
+5. **Given** JSON data fails structure validation, **When** the ingestion script processes multiple sources, **Then** the failed source is skipped with detailed logging, and processing continues for valid sources
+
+---
+
+### User Story 4 - Idempotent Data Processing (Priority: P2)
 
 A data engineer needs to run the ingestion script multiple times without creating duplicate records or losing data integrity, with conflicts logged for review.
 
@@ -50,13 +86,13 @@ A data engineer needs to run the ingestion script multiple times without creatin
 
 **Acceptance Scenarios**:
 
-1. **Given** data already exists in the database, **When** the ingestion script runs again with the same source data, **Then** duplicate records are not created (using appropriate conflict resolution strategy)
+1. **Given** data already exists in the database, **When** the ingestion script runs again with the same source data, **Then** existing records are updated using UPSERT (INSERT ON CONFLICT DO UPDATE) with last-write-wins, preventing duplicate records
 2. **Given** a conflict occurs during ingestion (e.g., unique constraint violation), **When** the ingestion script encounters the conflict, **Then** the conflict is logged with details (record identifier, conflict type, timestamp) and processing continues for other records
-3. **Given** the same JSON record is processed multiple times, **When** comparing database records, **Then** the most recent version is preserved or updated appropriately based on the idempotency strategy
+3. **Given** the same JSON record is processed multiple times, **When** comparing database records, **Then** the most recent version overwrites the existing record (last-write-wins strategy)
 
 ---
 
-### User Story 4 - Local Development and Testing (Priority: P2)
+### User Story 5 - Local Development and Testing (Priority: P2)
 
 A developer needs to run the ingestion pipeline locally for development, testing, and debugging before deploying to production.
 
@@ -72,7 +108,7 @@ A developer needs to run the ingestion pipeline locally for development, testing
 
 ---
 
-### User Story 5 - Containerized Deployment to Supabase (Priority: P3)
+### User Story 6 - Containerized Deployment to Supabase (Priority: P3)
 
 A DevOps engineer needs to deploy the ingestion pipeline as a containerized job that can run on Supabase infrastructure, either on-demand or on a schedule.
 
@@ -90,23 +126,30 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 
 ### Edge Cases
 
-- What happens when the JSON URL is unreachable or returns a non-200 status code?
-- How does the system handle malformed JSON that cannot be parsed?
-- What happens when a required field (e.g., workgroup_id) is missing from a JSON record?
-- How does the system handle extremely large JSON files or datasets with thousands of records?
-- What happens when database connection fails mid-ingestion?
+- What happens when a JSON URL is unreachable or returns a non-200 status code? → If single source: System should fail with clear error message (network/HTTP errors prevent ingestion). If multiple sources: System should continue processing accessible sources and log detailed error for failed source (partial success is acceptable)
+- How does the system handle malformed JSON that cannot be parsed? → If single source: System should fail with clear error message (invalid JSON prevents ingestion). If multiple sources: Failed source is skipped with detailed logging, processing continues for valid sources
+- What happens when a required field (e.g., workgroup_id) is missing from a JSON record? → Record is skipped with detailed logging (validation failure logged, processing continues)
+- How does the system handle extremely large JSON files or datasets with thousands of records? → System processes files sequentially, handling large datasets within reasonable time limits (e.g., under 10 minutes for all sources combined)
+- What happens when database connection fails mid-ingestion? → System should fail with clear error message; previously committed records from successfully processed sources remain in database (per-record transactions ensure partial success is preserved)
 - How does the system handle JSON records with circular references or deeply nested structures?
-- What happens when UUIDs in the source JSON conflict with existing database records?
+- What happens when UUIDs in the source JSON conflict with existing database records? → UPSERT behavior applies - existing records are updated with new data (last-write-wins)
 - How does the system handle special characters, unicode, or emoji in text fields?
-- What happens when date fields are in unexpected formats or invalid dates?
+- What happens when date fields are in unexpected formats or invalid dates? → Invalid date records are skipped with detailed logging, valid records continue processing
 - How does the system handle empty arrays or null values for nested collections (agendaItems, actionItems, etc.)?
+- What happens when the same meeting record exists in multiple year files with different data? → Last-write-wins based on ingestion order, with most recent ingestion taking precedence
+- How does the system handle JSON sources processed in different orders (e.g., 2022, then 2024, then 2023)? → Order should not affect final data state due to UPSERT behavior, but processing order may affect which version of overlapping records is final
+- What happens when JSON sources contain workgroups or meetings that overlap across different years? → UPSERT behavior applies - existing records are updated with new data, maintaining single source of truth per unique identifier
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: System MUST download JSON data from a specified remote URL
-- **FR-002**: System MUST validate that downloaded data is valid JSON and matches expected structure
+- **FR-001**: System MUST download JSON data from multiple specified remote URLs (2025, 2024, 2023, 2022)
+- **FR-002**: System MUST validate that downloaded data is valid JSON and matches expected structure, verifying JSON structure compatibility with existing data model before processing any records
+- **FR-002A**: System MUST verify that JSON contains required top-level fields (workgroup, workgroup_id, meetingInfo, agendaItems, tags, type) matching expected structure
+- **FR-002B**: System MUST process multiple JSON sources sequentially by default, maintaining transaction integrity and clear error attribution
+- **FR-002C**: System MUST continue processing remaining valid sources if one JSON source fails to download or validate
+- **FR-002D**: System MUST log detailed error information for failed JSON sources (source URL, error type, error message, timestamp)
 - **FR-003**: System MUST create database tables for workgroups, meetings, agenda_items, action_items, decision_items, and discussion_points
 - **FR-004**: System MUST use UUID primary keys for all tables
 - **FR-005**: System MUST establish foreign key relationships between tables (meetings → workgroups, agenda_items → meetings, action_items/decision_items/discussion_points → agenda_items)
@@ -116,17 +159,21 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - **FR-009**: System MUST extract normalized fields from JSON and populate relational table columns
 - **FR-010**: System MUST store nested objects (e.g., workingDocs, timestampedVideo) in JSONB columns
 - **FR-011**: System MUST handle missing or null fields gracefully without failing
-- **FR-012**: System MUST implement idempotent insertion logic to prevent duplicate records
-- **FR-013**: System MUST log conflicts (e.g., unique constraint violations) with details including record identifier, conflict type, and timestamp
+- **FR-012**: System MUST implement idempotent insertion logic using UPSERT (INSERT ON CONFLICT DO UPDATE) with last-write-wins strategy to prevent duplicate records and update existing records when re-ingesting, handling overlapping workgroups and meetings across multiple sources without creating duplicates
+- **FR-013**: System MUST log conflicts (e.g., unique constraint violations) with details including record identifier, conflict type, timestamp, and source URL
 - **FR-014**: System MUST continue processing remaining records even if individual records fail
+- **FR-023**: System MUST skip records that fail validation (malformed structure, invalid UUIDs, invalid dates) and log full error details including record identifier, validation errors, and problematic field values
+- **FR-024**: System MUST process each meeting record in its own atomic transaction, including all nested entities (agenda items, action items, decision items, discussion points), committing on success and rolling back on failure to ensure data consistency and referential integrity
 - **FR-015**: System MUST provide clear instructions for local setup and execution
 - **FR-016**: System MUST provide clear instructions for containerized deployment to Supabase
 - **FR-017**: System MUST include SQL DDL comments explaining table purposes and column meanings
 - **FR-018**: System MUST validate data types (e.g., dates, UUIDs) before insertion
-- **FR-019**: System MUST handle workgroup records (create if not exists, update if exists based on workgroup_id)
-- **FR-020**: System MUST link meetings to workgroups using workgroup_id foreign key
+- **FR-019**: System MUST handle workgroup records by pre-processing all unique workgroups from the JSON dataset first (create if not exists, update if exists based on workgroup_id) before processing any meetings
+- **FR-020**: System MUST link meetings to workgroups using workgroup_id foreign key (workgroups must exist before meetings are processed)
 - **FR-021**: System MUST process agenda items and their nested collections (action items, decision items, discussion points)
 - **FR-022**: System MUST preserve original JSON structure in raw_json columns even after normalization
+- **FR-025**: System MUST accept additional fields in JSON that are not in the base data model (schema flexibility), while ensuring core required fields are present
+- **FR-026**: System MUST process historic data within reasonable time limits (e.g., all sources within 10 minutes for typical dataset sizes)
 
 ### Key Entities *(include if feature involves data)*
 
@@ -144,8 +191,9 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 
 ### Measurable Outcomes
 
-- **SC-001**: System successfully ingests 100% of valid JSON records from the source URL without data loss
-- **SC-002**: System processes all 122 meeting summary records from the source dataset and inserts them into the database within 5 minutes
+- **SC-001**: System successfully ingests 100% of valid JSON records from all source URLs (2025, 2024, 2023, 2022) without data loss
+- **SC-002**: System processes all meeting summary records (approximately 677 total: 122 from 2025, 552 from 2024, 2 from 2023, 1 from 2022) and inserts them into the database within 10 minutes
+- **SC-002A**: System validates JSON structure compatibility for 100% of sources before processing any records
 - **SC-003**: System handles missing or null fields in 100% of records without failing or corrupting data
 - **SC-004**: System can be run multiple times (idempotent) without creating duplicate records or data corruption
 - **SC-005**: System logs all conflicts with sufficient detail (record ID, conflict type, timestamp) for 100% of conflict cases
@@ -156,18 +204,26 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - **SC-010**: System preserves original JSON data in raw_json columns for 100% of records, enabling full data provenance and recovery
 - **SC-011**: System validates JSON structure and rejects invalid data before attempting database insertion, preventing partial data corruption
 - **SC-012**: Database schema includes appropriate indexes such that common query patterns (filter by workgroup, filter by date range, search action items) execute efficiently
+- **SC-013**: System continues processing remaining valid sources when one source fails, achieving partial success rather than complete failure
+- **SC-014**: System applies UPSERT behavior correctly across multiple sources, updating existing records without creating duplicates
+- **SC-015**: Historic data ingestion integrates seamlessly with existing 2025 data ingestion, using the same schema and processing logic
 
 ## Assumptions
 
 - PostgreSQL/Supabase database is available and accessible
 - Python 3.8+ is available for local development
 - Docker is available for containerized deployment
-- Network access to the GitHub raw content URL is available
+- Network access to all GitHub raw content URLs (2025, 2024, 2023, 2022) is available
 - Database user has permissions to create tables, indexes, and insert data
-- Source JSON structure remains relatively stable (schema can accommodate minor variations)
-- Workgroup IDs in source JSON are valid UUIDs
+- Source JSON structure remains relatively stable across years (schema can accommodate minor variations)
+- Historic JSON sources (2022, 2023, 2024) follow the same structure as 2025 data, with potential minor variations in optional fields
+- Historic JSON structure is compatible with existing data model (workgroup, workgroup_id, meetingInfo, agendaItems, tags, type fields)
+- Workgroup IDs in source JSON are valid UUIDs (or can be validated/skipped if invalid)
 - Date fields in source JSON follow consistent formats (ISO 8601 preferred)
 - Source JSON does not exceed reasonable size limits (assumed to be processable in memory)
+- Historic data may contain overlapping records with existing 2025 data, requiring UPSERT behavior
+- Processing order of sources may affect which version of overlapping records is final (last-write-wins)
+- Historic JSON sources may have different record counts and file sizes (2024: 552 records, 2023: 2 records, 2022: 1 record)
 - Supabase supports containerized job execution (either via Edge Functions, scheduled jobs, or similar infrastructure)
 
 ## Dependencies
@@ -189,6 +245,6 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - Data export or backup functionality
 - Multi-tenant or access control features
 - Data versioning or change tracking beyond raw JSON preservation
-- Integration with other data sources beyond the specified JSON URL
+- Integration with other data sources beyond the specified JSON URLs (2025, 2024, 2023, 2022)
 - Automated schema migration or evolution
 - Data quality scoring or validation rules beyond structure validation
