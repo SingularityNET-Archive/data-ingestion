@@ -185,7 +185,9 @@ Deploy as serverless function:
 
 ### Detailed Deployment Guide
 
-See `SUPABASE_DEPLOYMENT_OPTIONS.md` for comprehensive deployment options and step-by-step instructions.
+- **Supabase Setup Guide**: `SUPABASE_SETUP_GUIDE.md` - Step-by-step instructions for setting up Supabase and GitHub Actions
+- **Quick Start Checklist**: `SUPABASE_QUICK_START.md` - Quick reference checklist for setup
+- **Deployment Options**: `SUPABASE_DEPLOYMENT_OPTIONS.md` - Comprehensive guide for all deployment options
 
 ### Production Checklist
 
