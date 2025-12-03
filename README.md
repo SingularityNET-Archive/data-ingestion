@@ -17,7 +17,7 @@ A Python-based data ingestion pipeline that downloads meeting summary JSON data 
   - Safe to run multiple times without data corruption
 - **Structured Logging**: JSON-formatted logs with detailed error information
   - Includes source URL, error type, error message, and timestamp for all errors
-- **Containerized Deployment**: Docker support for Supabase deployment
+- **GitHub Actions Deployment**: Automated scheduled execution with zero infrastructure management
 
 ## Prerequisites
 
@@ -122,7 +122,7 @@ tests/
 
 scripts/
 ├── setup_db.sql     # Database schema DDL
-└── docker/          # Docker configuration
+└── .github/         # GitHub Actions workflow configuration
 ```
 
 ## Development
@@ -148,29 +148,46 @@ mypy src/
 
 ## Deployment
 
-### Production Deployment
+### Production Deployment Options
 
-For production deployment to Supabase or other containerized environments:
+The ingestion pipeline can be deployed to Supabase using several methods:
 
-1. **Build Docker Image**
-   ```bash
-   docker build -t data-ingestion:latest -f scripts/docker/Dockerfile .
-   ```
+#### Option 1: GitHub Actions (Recommended - No Containers)
 
-2. **Configure Environment Variables**
-   - Set `DATABASE_URL` with your production database connection string
-   - Set `LOG_LEVEL` (default: `INFO`)
-   - Set `LOG_FORMAT` (default: `json`)
+**Best for**: Automated scheduled runs, zero infrastructure management
 
-3. **Run Container**
-   ```bash
-   docker run --env-file .env data-ingestion:latest
-   ```
+1. **Set up GitHub Secrets**
+   - Go to repository Settings → Secrets and variables → Actions
+   - Add `SUPABASE_DATABASE_URL` with your Supabase connection string
 
-4. **Verify Deployment**
-   - Check logs for successful ingestion
-   - Verify record counts in database
-   - Test idempotent re-runs
+2. **Workflow is Ready**
+   - The workflow file `.github/workflows/ingest-meetings.yml` is already configured
+   - Runs daily at 2 AM UTC (or trigger manually from Actions tab)
+
+3. **Verify**
+   - Check Actions tab for successful runs
+   - Review logs in workflow artifacts
+
+#### Option 2: Server/VM with Cron
+
+For traditional server deployment:
+
+1. **Set up server** (EC2, GCE, Azure VM, etc.)
+2. **Install Python and dependencies**
+3. **Configure cron job** for scheduled execution
+4. **Set environment variables** in `.env` file
+
+#### Option 3: Serverless Functions
+
+Deploy as serverless function:
+- **Google Cloud Functions**: See `SUPABASE_DEPLOYMENT_OPTIONS.md`
+- **AWS Lambda**: See `SUPABASE_DEPLOYMENT_OPTIONS.md`
+
+### Detailed Deployment Guide
+
+See `SUPABASE_DEPLOYMENT_OPTIONS.md` for comprehensive deployment options and step-by-step instructions.
+
+### Production Checklist
 
 See `PRODUCTION_CHECKLIST.md` for detailed production deployment checklist.
 
@@ -187,6 +204,7 @@ See `specs/001-meeting-summaries-ingestion/quickstart.md` for local development 
 - **Quickstart Guide**: `specs/001-meeting-summaries-ingestion/quickstart.md`
 
 ### Operations Documentation
+- **Deployment Options**: `SUPABASE_DEPLOYMENT_OPTIONS.md` - Comprehensive guide for deployment options (GitHub Actions recommended, serverless, etc.)
 - **Production Checklist**: `PRODUCTION_CHECKLIST.md` - Environment configuration and pre-deployment verification
 - **Troubleshooting Guide**: `TROUBLESHOOTING.md` - Common issues and solutions
 - **Operations Runbook**: `OPERATIONS_RUNBOOK.md` - Step-by-step operational procedures

@@ -45,9 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error handling tests for failure scenarios
 
 #### Deployment
-- Docker containerization support
-- Multi-stage Dockerfile for optimized image size
-- Docker Compose configuration for local testing
+- GitHub Actions workflow for automated scheduled execution
+- Zero-infrastructure deployment (no containers or servers needed)
+- Manual workflow trigger support
 - Production deployment documentation
 
 #### Documentation
@@ -106,6 +106,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Target: Process 677 records within 10 minutes
 
 ## [Unreleased]
+
+### Changed
+- **Deployment Method**: Migrated from Docker containerization to GitHub Actions workflow
+  - Removed Docker-specific deployment instructions
+  - Added GitHub Actions workflow (`.github/workflows/ingest-meetings.yml`)
+  - Updated all documentation to reflect GitHub Actions as primary deployment method
+  - Simplified deployment process (no container registry or orchestration needed)
 
 ### Planned
 - Parallel source processing option

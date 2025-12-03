@@ -10,7 +10,7 @@ The ingestion pipeline downloads meeting summary JSON data from GitHub URLs, val
 
 - Database connection string (`DATABASE_URL`)
 - Network access to GitHub raw content URLs
-- Python 3.8+ or Docker container runtime
+- Python 3.8+ or GitHub Actions workflow runtime
 - Database schema deployed and up-to-date
 
 ## Regular Operations
@@ -39,26 +39,25 @@ python -m src.cli.ingest --dry-run
 python -m src.cli.ingest --verbose
 ```
 
-### Docker Container Execution
+### GitHub Actions Execution
 
-**Build Image:**
-```bash
-docker build -t data-ingestion:latest -f scripts/docker/Dockerfile .
-```
+**Workflow is Already Configured:**
+The GitHub Actions workflow (`.github/workflows/ingest-meetings.yml`) is pre-configured and ready to use.
 
-**Run Container:**
-```bash
-docker run --env-file .env data-ingestion:latest
-```
+**Manual Trigger:**
+1. Go to GitHub repository → **Actions** tab
+2. Select **Ingest Meeting Summaries** workflow
+3. Click **Run workflow** → **Run workflow**
 
-**Run with Custom Environment:**
-```bash
-docker run \
-  -e DATABASE_URL="postgresql://user:pass@host:5432/db" \
-  -e LOG_LEVEL="INFO" \
-  -e LOG_FORMAT="json" \
-  data-ingestion:latest
-```
+**Scheduled Execution:**
+- Workflow runs automatically daily at 2 AM UTC
+- No manual intervention needed
+- Check **Actions** tab to view execution history
+
+**Configure Secrets:**
+1. Go to repository → **Settings** → **Secrets and variables** → **Actions**
+2. Add `SUPABASE_DATABASE_URL` secret with your Supabase connection string
+3. Workflow will automatically use this secret
 
 ## Monitoring Ingestion
 

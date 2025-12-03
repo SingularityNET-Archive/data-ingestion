@@ -7,7 +7,7 @@
 
 ## Summary
 
-Build a Python FastAPI-based data ingestion pipeline that downloads meeting summary JSON data from multiple GitHub URLs (2022-2025), validates structure compatibility, and stores it in a normalized PostgreSQL/Supabase schema. The system will extract normalized fields into relational tables while preserving original JSON in JSONB columns for provenance. Implementation includes idempotent UPSERT processing, per-meeting atomic transactions, structured logging, and containerized deployment support.
+Build a Python FastAPI-based data ingestion pipeline that downloads meeting summary JSON data from multiple GitHub URLs (2022-2025), validates structure compatibility, and stores it in a normalized PostgreSQL/Supabase schema. The system will extract normalized fields into relational tables while preserving original JSON in JSONB columns for provenance. Implementation includes idempotent UPSERT processing, per-meeting atomic transactions, structured logging, and GitHub Actions deployment support.
 
 ## Technical Context
 
@@ -15,7 +15,7 @@ Build a Python FastAPI-based data ingestion pipeline that downloads meeting summ
 **Primary Dependencies**: FastAPI, asyncpg (or psycopg2), httpx (or requests), pydantic (for validation), python-dotenv  
 **Storage**: PostgreSQL/Supabase with JSONB support  
 **Testing**: pytest, pytest-asyncio (if using asyncpg)  
-**Target Platform**: Linux server (containerized for Supabase deployment)  
+**Target Platform**: GitHub Actions (automated scheduled execution)  
 **Project Type**: single (data ingestion pipeline/CLI tool)  
 **Performance Goals**: Process all sources (677 records across 4 years) within 10 minutes  
 **Constraints**: Per-record transactions for atomicity, structured JSON logging to stdout/stderr, UTF-8 encoding for Unicode/emoji support, max nesting depth check for circular references  
@@ -32,7 +32,7 @@ Build a Python FastAPI-based data ingestion pipeline that downloads meeting summ
 - Clear separation of concerns (schema, ingestion logic, validation)
 - Idempotent operations (UPSERT pattern)
 - Structured logging for observability
-- Containerized deployment support
+- GitHub Actions deployment support
 
 ## Project Structure
 
@@ -85,9 +85,9 @@ tests/
 
 scripts/                 # Deployment and utility scripts
 ├── setup_db.sh
-└── docker/
-    ├── Dockerfile
-    └── docker-compose.yml
+└── .github/
+    └── workflows/
+        └── ingest-meetings.yml
 ```
 
 **Structure Decision**: Single project structure chosen as this is a data ingestion pipeline/CLI tool rather than a web application. The structure separates concerns into models (data definitions), services (business logic), db (database utilities), cli (entry point), and lib (shared utilities). Tests are organized by type (contract, integration, unit) to support different testing strategies.

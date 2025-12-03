@@ -50,15 +50,20 @@ This checklist ensures all required environment variables and configurations are
     - `https://raw.githubusercontent.com/SingularityNET-Archive/SingularityNET-Archive/refs/heads/main/Data/Snet-Ambassador-Program/Meeting-Summaries/2023/meeting-summaries-array.json`
     - `https://raw.githubusercontent.com/SingularityNET-Archive/SingularityNET-Archive/refs/heads/main/Data/Snet-Ambassador-Program/Meeting-Summaries/2022/meeting-summaries-array.json`
 
-### Container Configuration (if using Docker)
+### GitHub Actions Configuration
 
-- [ ] Docker image builds successfully
-  - Run: `docker build -t data-ingestion:latest -f scripts/docker/Dockerfile .`
-  - Verify no build errors
+- [ ] GitHub Actions workflow file exists (`.github/workflows/ingest-meetings.yml`)
+  - Verify workflow file is present in repository
+  - Check workflow syntax is valid
 
-- [ ] Container environment variables are configured
-  - Set in docker-compose.yml or deployment configuration
-  - Verify with: `docker run --env-file .env data-ingestion:latest env`
+- [ ] GitHub Secrets are configured
+  - Go to repository → Settings → Secrets and variables → Actions
+  - Verify `SUPABASE_DATABASE_URL` secret is set
+  - Secret should contain full Supabase connection string
+
+- [ ] Workflow can be triggered manually
+  - Go to Actions tab → Select workflow → Run workflow
+  - Verify workflow starts successfully
 
 ## Production Deployment Steps
 

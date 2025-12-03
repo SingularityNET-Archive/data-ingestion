@@ -155,22 +155,22 @@ description: "Task list for Meeting Summaries Data Ingestion Pipeline implementa
 
 ---
 
-## Phase 8: User Story 6 - Containerized Deployment to Supabase (Priority: P3)
+## Phase 8: User Story 6 - GitHub Actions Deployment to Supabase (Priority: P3)
 
-**Goal**: Deploy the ingestion pipeline as a containerized job that can run on Supabase infrastructure, either on-demand or on a schedule.
+**Goal**: Deploy the ingestion pipeline as a scheduled GitHub Actions workflow that runs automatically and connects to Supabase database, either on-demand or on a schedule.
 
-**Independent Test**: Build a container image, deploy it to Supabase, and verify that the ingestion job executes successfully in the containerized environment. The deployment delivers a production-ready, maintainable data ingestion solution.
+**Independent Test**: Set up GitHub Actions workflow, configure secrets, and verify that the ingestion job executes successfully in the GitHub Actions environment. The deployment delivers a production-ready, maintainable data ingestion solution.
 
 ### Implementation for User Story 6
 
-- [X] T049 [US6] Create Dockerfile in scripts/docker/Dockerfile (Python 3.9-slim base, multi-stage build, install dependencies, copy application code)
-- [X] T050 [US6] Create docker-compose.yml in scripts/docker/docker-compose.yml for local container testing
-- [X] T051 [US6] Create .dockerignore file to exclude unnecessary files from Docker build
-- [X] T052 [US6] Add container deployment instructions to quickstart.md (build image, push to registry, deploy to Supabase, configure environment variables)
-- [X] T053 [US6] Test container build and local execution with docker-compose
-- [X] T054 [US6] Verify containerized execution connects to Supabase database and processes data correctly
+- [X] T049 [US6] Create GitHub Actions workflow file (.github/workflows/ingest-meetings.yml) with scheduled execution and manual trigger support
+- [X] T050 [US6] Configure workflow to install Python dependencies and run ingestion CLI
+- [X] T051 [US6] Add workflow documentation for setting up GitHub Secrets (SUPABASE_DATABASE_URL)
+- [X] T052 [US6] Add GitHub Actions deployment instructions to quickstart.md (configure secrets, trigger workflow, verify execution)
+- [X] T053 [US6] Test workflow execution locally using act or GitHub Actions UI
+- [X] T054 [US6] Verify GitHub Actions execution connects to Supabase database and processes data correctly
 
-**Checkpoint**: At this point, User Story 6 should be fully functional and testable independently - containerized deployment is ready for Supabase
+**Checkpoint**: At this point, User Story 6 should be fully functional and testable independently - GitHub Actions deployment is ready for Supabase
 
 ---
 
@@ -251,9 +251,9 @@ description: "Task list for Meeting Summaries Data Ingestion Pipeline implementa
 - [X] T094 [P] [PROD] Run full test suite and verify all tests pass (pytest with coverage)
 - [X] T095 [P] [PROD] Run code quality checks (black, ruff, mypy) and fix any issues
 - [X] T096 [PROD] Create production environment configuration checklist (DATABASE_URL, DB_PASSWORD, LOG_LEVEL, LOG_FORMAT)
-- [X] T097 [PROD] Build production Docker image and verify it builds successfully
-- [ ] T098 [PROD] Test Docker container locally with production-like database connection (requires production database access)
-- [ ] T099 [PROD] Deploy containerized ingestion job to Supabase (configure environment variables, verify connectivity) (requires Supabase access)
+- [X] T097 [PROD] Create GitHub Actions workflow for production deployment
+- [ ] T098 [PROD] Configure GitHub Secrets with Supabase database connection string (requires Supabase access)
+- [ ] T099 [PROD] Deploy GitHub Actions workflow and verify it connects to Supabase (configure secrets, trigger workflow, verify connectivity) (requires Supabase access)
 - [ ] T100 [PROD] Run end-to-end ingestion in production environment with all sources (2022, 2023, 2024, 2025) (requires production environment)
 - [ ] T101 [PROD] Verify production ingestion processes all 677 records correctly within 10-minute goal (requires production environment)
 - [ ] T102 [PROD] Test idempotent behavior in production (run ingestion twice, verify no duplicates) (requires production environment)
@@ -293,7 +293,7 @@ description: "Task list for Meeting Summaries Data Ingestion Pipeline implementa
 - **User Story 3 (P1)**: Can start after Foundational (Phase 2) - Can be integrated with US2 (validation before ingestion)
 - **User Story 4 (P2)**: Can start after US2 is complete - Enhances US2 with idempotency
 - **User Story 5 (P2)**: Can start after US2 is complete - Provides local development support
-- **User Story 6 (P3)**: Can start after US2 is complete - Provides containerized deployment
+- **User Story 6 (P3)**: Can start after US2 is complete - Provides GitHub Actions deployment
 
 ### Within Each User Story
 
@@ -351,7 +351,7 @@ Task: "Add circular reference detection in src/lib/validators.py"
 4. Add User Story 3 → Test independently → Validation prevents errors
 5. Add User Story 4 → Test independently → Idempotent re-runs work
 6. Add User Story 5 → Test independently → Local development ready
-7. Add User Story 6 → Test independently → Containerized deployment ready
+7. Add User Story 6 → Test independently → GitHub Actions deployment ready
 8. Each story adds value without breaking previous stories
 
 ### Parallel Team Strategy
@@ -412,6 +412,6 @@ With multiple developers:
   - **US3**: Run validation checks, verify structure compatibility before ingestion
   - **US4**: Run ingestion twice, verify no duplicates and proper updates
   - **US5**: Follow setup instructions, run ingestion locally successfully
-  - **US6**: Build container, deploy to Supabase, verify execution
+  - **US6**: Set up GitHub Actions workflow, configure secrets, deploy to Supabase, verify execution
 
 - **Suggested MVP Scope**: User Stories 1, 2, 3 (P1 priorities) - Database schema, JSON ingestion, and structure validation

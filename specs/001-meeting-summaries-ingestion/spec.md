@@ -22,7 +22,7 @@
 - Q: How should the system handle special characters, Unicode, and emoji in text fields? → A: UTF-8 encoding with PostgreSQL TEXT/JSONB (default Unicode support)
 - Q: How should the system handle empty arrays or null values for nested collections (agendaItems, actionItems, decisionItems, discussionPoints)? → A: Store empty arrays as empty JSONB arrays [], NULL as NULL (preserve semantics)
 - Q: How should the system handle JSON records with circular references or deeply nested structures? → A: Detect and skip records with circular references, log warning (max depth check)
-- Q: What format and destination should be used for logging (errors, conflicts, validation failures, progress)? → A: Structured JSON logs to stdout/stderr (container-friendly)
+- Q: What format and destination should be used for logging (errors, conflicts, validation failures, progress)? → A: Structured JSON logs to stdout/stderr (GitHub Actions-friendly)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -113,19 +113,19 @@ A developer needs to run the ingestion pipeline locally for development, testing
 
 ---
 
-### User Story 6 - Containerized Deployment to Supabase (Priority: P3)
+### User Story 6 - GitHub Actions Deployment to Supabase (Priority: P3)
 
-A DevOps engineer needs to deploy the ingestion pipeline as a containerized job that can run on Supabase infrastructure, either on-demand or on a schedule.
+A DevOps engineer needs to deploy the ingestion pipeline as a GitHub Actions workflow that runs automatically and connects to Supabase database, either on-demand or on a schedule.
 
-**Why this priority**: Containerized deployment enables automated, scalable execution in production environments with proper resource management and isolation.
+**Why this priority**: GitHub Actions deployment enables automated, scalable execution in production environments with zero infrastructure management and built-in scheduling capabilities.
 
-**Independent Test**: Can be fully tested by building a container image, deploying it to Supabase, and verifying that the ingestion job executes successfully in the containerized environment. The deployment delivers a production-ready, maintainable data ingestion solution.
+**Independent Test**: Can be fully tested by setting up GitHub Actions workflow, configuring secrets, and verifying that the ingestion job executes successfully in the GitHub Actions environment. The deployment delivers a production-ready, maintainable data ingestion solution.
 
 **Acceptance Scenarios**:
 
-1. **Given** containerization instructions are provided, **When** building the container image, **Then** it includes all necessary dependencies and can be built without errors
-2. **Given** a container image is built, **When** deploying to Supabase with environment variables configured, **Then** the container runs successfully and connects to the Supabase database using provided credentials
-3. **Given** the containerized job is deployed, **When** executing the ingestion, **Then** it processes data correctly and logs execution status and any errors
+1. **Given** GitHub Actions workflow file is provided, **When** configuring GitHub Secrets with Supabase connection string, **Then** the workflow can access the database credentials securely
+2. **Given** GitHub Actions workflow is configured, **When** triggering the workflow (manually or on schedule), **Then** it runs successfully and connects to the Supabase database using provided credentials
+3. **Given** the GitHub Actions workflow is deployed, **When** executing the ingestion, **Then** it processes data correctly and logs execution status and any errors
 
 ---
 
@@ -170,12 +170,12 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - **FR-023**: System MUST skip records that fail validation (malformed structure, invalid UUIDs, invalid dates) and log full error details including record identifier, validation errors, and problematic field values in structured JSON format to stdout/stderr
 - **FR-024**: System MUST process each meeting record in its own atomic transaction, including all nested entities (agenda items, action items, decision items, discussion points), committing on success and rolling back on failure to ensure data consistency and referential integrity
 - **FR-015**: System MUST provide clear instructions for local setup and execution
-- **FR-016**: System MUST provide clear instructions for containerized deployment to Supabase
-- **FR-027**: System MUST use environment variables (DATABASE_URL, DB_PASSWORD) for database credential management in both local and containerized environments, with secure defaults and clear documentation
+- **FR-016**: System MUST provide clear instructions for GitHub Actions deployment to Supabase
+- **FR-027**: System MUST use environment variables (DATABASE_URL, DB_PASSWORD) for database credential management in both local and GitHub Actions environments, with secure defaults and clear documentation
 - **FR-028**: System MUST handle special characters, Unicode, and emoji in text fields using UTF-8 encoding with PostgreSQL TEXT/JSONB columns (default Unicode support)
 - **FR-029**: System MUST handle empty arrays and null values for nested collections (agendaItems, actionItems, decisionItems, discussionPoints) by storing empty arrays as empty JSONB arrays `[]` and NULL as NULL to preserve data semantics
 - **FR-030**: System MUST detect and skip records with circular references or excessive nesting depth, logging warnings with record identifier and issue details, while continuing processing for other valid records
-- **FR-031**: System MUST output structured JSON logs to stdout/stderr (container-friendly format) for all logging events including errors, conflicts, validation failures, and progress updates
+- **FR-031**: System MUST output structured JSON logs to stdout/stderr (GitHub Actions-friendly format) for all logging events including errors, conflicts, validation failures, and progress updates
 - **FR-017**: System MUST include SQL DDL comments explaining table purposes and column meanings
 - **FR-018**: System MUST validate data types (e.g., dates, UUIDs) before insertion
 - **FR-019**: System MUST handle workgroup records by pre-processing all unique workgroups from the JSON dataset first (create if not exists, update if exists based on workgroup_id) before processing any meetings
@@ -210,7 +210,7 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - **SC-006**: Database schema supports efficient queries on normalized fields (e.g., find all meetings for a workgroup) with response times under 100ms for typical queries
 - **SC-007**: Database schema supports flexible JSON queries on nested objects (e.g., search within workingDocs) using JSONB operators
 - **SC-008**: A developer can set up and run the ingestion locally following provided instructions in under 30 minutes
-- **SC-009**: A DevOps engineer can build and deploy the containerized job to Supabase following provided instructions in under 1 hour
+- **SC-009**: A DevOps engineer can set up and deploy the GitHub Actions workflow to Supabase following provided instructions in under 1 hour
 - **SC-010**: System preserves original JSON data in raw_json columns for 100% of records, enabling full data provenance and recovery
 - **SC-011**: System validates JSON structure and rejects invalid data before attempting database insertion, preventing partial data corruption
 - **SC-012**: Database schema includes appropriate indexes such that common query patterns (filter by workgroup, filter by date range, search action items) execute efficiently
@@ -222,7 +222,7 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 
 - PostgreSQL/Supabase database is available and accessible
 - Python 3.8+ is available for local development
-- Docker is available for containerized deployment
+- GitHub Actions is available for workflow deployment (enabled by default in GitHub repositories)
 - Network access to all GitHub raw content URLs (2025, 2024, 2023, 2022) is available
 - Database user has permissions to create tables, indexes, and insert data
 - Source JSON structure remains relatively stable across years (schema can accommodate minor variations)
@@ -234,7 +234,7 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - Historic data may contain overlapping records with existing 2025 data, requiring UPSERT behavior
 - Processing order of sources may affect which version of overlapping records is final (last-write-wins)
 - Historic JSON sources may have different record counts and file sizes (2024: 552 records, 2023: 2 records, 2022: 1 record)
-- Supabase supports containerized job execution (either via Edge Functions, scheduled jobs, or similar infrastructure)
+- GitHub Actions can connect to Supabase PostgreSQL database (network access and credentials configured)
 
 ## Dependencies
 
@@ -243,7 +243,7 @@ A DevOps engineer needs to deploy the ingestion pipeline as a containerized job 
 - Database connection library (e.g., asyncpg, psycopg2)
 - HTTP client library for downloading JSON (e.g., httpx, requests)
 - JSON parsing and validation libraries
-- Container runtime (Docker) for containerized deployment
+- GitHub Actions workflow runtime for automated deployment
 - Supabase platform access for deployment target
 
 ## Out of Scope

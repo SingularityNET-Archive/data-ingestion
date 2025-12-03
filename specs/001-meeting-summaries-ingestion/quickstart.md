@@ -5,7 +5,7 @@
 
 ## Overview
 
-This guide provides step-by-step instructions for setting up and running the meeting summaries ingestion pipeline locally and deploying it to Supabase as a containerized job.
+This guide provides step-by-step instructions for setting up and running the meeting summaries ingestion pipeline locally and deploying it to Supabase using GitHub Actions.
 
 ---
 
@@ -18,10 +18,10 @@ This guide provides step-by-step instructions for setting up and running the mee
 - **pip**: Python package manager
 - **Git**: For cloning repository (if applicable)
 
-### Containerized Deployment
+### GitHub Actions Deployment
 
-- **Docker**: Version 20.10+ (`docker --version`)
-- **Docker Compose**: Optional, for local testing (`docker-compose --version`)
+- **GitHub Account**: Access to GitHub repository
+- **GitHub Actions**: Enabled in repository settings (enabled by default)
 - **Supabase Account**: Access to Supabase project with PostgreSQL database
 
 ---
@@ -177,72 +177,9 @@ ORDER BY meeting_count DESC;
 
 ---
 
-## Containerized Deployment to Supabase
+## GitHub Actions Deployment to Supabase
 
-### Step 1: Build Docker Image
-
-Create `Dockerfile` in project root:
-
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY src/ ./src/
-COPY cli/ ./cli/
-
-# Set Python path
-ENV PYTHONPATH=/app
-
-# Default command
-CMD ["python", "-m", "cli.ingest"]
-```
-
-Build the image:
-
-```bash
-docker build -t meeting-summaries-ingestion:latest .
-```
-
-### Step 2: Test Container Locally
-
-```bash
-# Run container with environment variables
-docker run --rm \
-  -e DATABASE_URL="postgresql://user:password@host:5432/database" \
-  -e LOG_FORMAT=json \
-  meeting-summaries-ingestion:latest
-
-# Or use docker-compose (create docker-compose.yml):
-docker-compose up
-```
-
-**Example `docker-compose.yml`**:
-
-```yaml
-version: '3.8'
-
-services:
-  ingestion:
-    build: .
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - LOG_FORMAT=json
-      - LOG_LEVEL=INFO
-    restart: "no"
-```
-
-### Step 3: Get Supabase Database Credentials
+### Step 1: Get Supabase Database Credentials
 
 1. Log in to [Supabase Dashboard](https://app.supabase.com)
 2. Select your project
@@ -251,7 +188,7 @@ services:
    - Format: `postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
    - Or use individual values: Host, Port, Database, User, Password
 
-### Step 4: Create Database Schema in Supabase
+### Step 2: Create Database Schema in Supabase
 
 **Option A: Using Supabase SQL Editor**
 
@@ -269,89 +206,50 @@ psql "postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/po
 \i contracts/sql-schema.md
 ```
 
-### Step 5: Push Docker Image to Registry
+### Step 3: Configure GitHub Secrets
 
-**Option A: Docker Hub**
+1. Go to your GitHub repository
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Add the following secret:
+   - **Name**: `SUPABASE_DATABASE_URL`
+   - **Value**: Your Supabase connection string (from Step 1)
+   - Format: `postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
 
-```bash
-# Tag image
-docker tag meeting-summaries-ingestion:latest yourusername/meeting-summaries-ingestion:latest
+### Step 4: Verify GitHub Actions Workflow
 
-# Push to Docker Hub
-docker push yourusername/meeting-summaries-ingestion:latest
-```
+The GitHub Actions workflow is already configured in `.github/workflows/ingest-meetings.yml`. It:
+- Runs daily at 2 AM UTC (automatically scheduled)
+- Can be triggered manually from the Actions tab
+- Installs Python dependencies
+- Runs the ingestion pipeline
+- Uploads logs as artifacts
 
-**Option B: GitHub Container Registry**
+**Workflow file location**: `.github/workflows/ingest-meetings.yml`
 
-```bash
-# Tag image
-docker tag meeting-summaries-ingestion:latest ghcr.io/yourusername/meeting-summaries-ingestion:latest
+### Step 5: Test Deployment
 
-# Push to GitHub Container Registry
-docker push ghcr.io/yourusername/meeting-summaries-ingestion:latest
-```
+1. **Trigger workflow manually**:
+   - Go to **Actions** tab in GitHub repository
+   - Select **Ingest Meeting Summaries** workflow
+   - Click **Run workflow** → **Run workflow**
 
-**Option C: Supabase Storage** (if supported)
+2. **Monitor execution**:
+   - Watch the workflow run in real-time
+   - Check logs for any errors
+   - Download logs artifact if needed
 
-Follow Supabase documentation for container image storage.
+3. **Verify data in Supabase**:
+   - Go to Supabase Dashboard → **Table Editor**
+   - Check `workgroups`, `meetings`, `agenda_items`, etc.
+   - Verify records were inserted correctly
 
-### Step 6: Deploy to Supabase
+### Step 6: Verify Scheduled Execution
 
-**Option A: Supabase Edge Functions** (if supported)
-
-Create `supabase/functions/ingest-meetings/index.ts`:
-
-```typescript
-// Note: This is a placeholder - Supabase Edge Functions use Deno
-// You may need to adapt the Python ingestion logic or use a different deployment method
-```
-
-**Option B: Scheduled Job via Supabase Cron** (if available)
-
-1. Configure Supabase Cron job to run containerized ingestion
-2. Set environment variables in Supabase dashboard
-3. Schedule job (e.g., daily at 2 AM UTC)
-
-**Option C: External Container Orchestration**
-
-Deploy container to:
-- **Google Cloud Run**: Serverless container execution
-- **AWS ECS/Fargate**: Container orchestration
-- **Azure Container Instances**: Serverless containers
-- **Kubernetes**: If you have a cluster
-
-**Example: Google Cloud Run**
-
-```bash
-# Build and push to Google Container Registry
-gcloud builds submit --tag gcr.io/[PROJECT-ID]/meeting-summaries-ingestion
-
-# Deploy to Cloud Run
-gcloud run deploy meeting-summaries-ingestion \
-  --image gcr.io/[PROJECT-ID]/meeting-summaries-ingestion \
-  --set-env-vars DATABASE_URL="[SUPABASE_CONNECTION_STRING]" \
-  --region us-central1
-```
-
-### Step 7: Configure Environment Variables
-
-Set environment variables in your deployment platform:
-
-- `DATABASE_URL`: Supabase PostgreSQL connection string
-- `LOG_FORMAT`: `json` (for structured logging)
-- `LOG_LEVEL`: `INFO` or `DEBUG`
-
-**Security**: Use secrets management (e.g., Supabase Secrets, Cloud Run secrets) for sensitive credentials.
-
-### Step 8: Test Deployment
-
-```bash
-# Trigger ingestion manually (if on-demand execution)
-# Or wait for scheduled execution
-
-# Verify data in Supabase Dashboard
-# Go to Table Editor → Check workgroups, meetings, etc.
-```
+The workflow is configured to run daily at 2 AM UTC. To verify:
+1. Wait for the scheduled time, or
+2. Check the **Actions** tab the next day to see the automatic run
+3. Review logs to ensure ingestion completed successfully
 
 ---
 
@@ -379,21 +277,23 @@ psql $DATABASE_URL -c "SELECT version();"
 
 **Solution**: Check source JSON data. Invalid UUIDs will be logged and skipped. Review logs for details.
 
-### Container Deployment Issues
+### GitHub Actions Deployment Issues
 
-**Problem**: Container fails to connect to Supabase database
+**Problem**: Workflow fails to connect to Supabase database
 
 **Solution**: 
-- Verify `DATABASE_URL` environment variable is set correctly
-- Check Supabase firewall rules allow connections from your deployment platform
-- Ensure database password is correct
+- Verify `SUPABASE_DATABASE_URL` secret is set correctly in GitHub repository settings
+- Check the connection string format matches: `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
+- Ensure database password is correct and URL-encoded if it contains special characters
+- Check Supabase firewall rules allow connections from GitHub Actions IPs (usually not restricted)
 
-**Problem**: Container runs but no data is inserted
+**Problem**: Workflow runs but no data is inserted
 
 **Solution**:
-- Check container logs: `docker logs <container-id>`
-- Verify schema exists in Supabase database
-- Run with `--dry-run` flag to validate data without inserting
+- Check workflow logs in the Actions tab for detailed error messages
+- Verify schema exists in Supabase database (run `scripts/setup_db.sql` if not done)
+- Test locally with the same connection string to isolate issues
+- Review logs artifact downloaded from workflow run
 
 **Problem**: `Permission denied` errors
 
@@ -413,12 +313,12 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres;
 - Use connection pooling for database operations
 - Enable verbose logging only when debugging
 
-### Container Deployment
+### GitHub Actions Deployment
 
-- Use multi-stage Docker builds to reduce image size
-- Set appropriate resource limits (CPU, memory)
-- Use connection pooling for database connections
-- Consider parallel processing for multiple sources (if implemented)
+- Workflow automatically uses GitHub-hosted runners (no infrastructure management needed)
+- Default timeout is 15 minutes (configurable in workflow file)
+- Logs are automatically captured and available as artifacts
+- Workflow can be triggered manually or runs on schedule
 
 ---
 
@@ -436,7 +336,7 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres;
 
 - **PostgreSQL Documentation**: https://www.postgresql.org/docs/
 - **Supabase Documentation**: https://supabase.com/docs
-- **Docker Documentation**: https://docs.docker.com/
+- **GitHub Actions Documentation**: https://docs.github.com/en/actions
 - **Python asyncpg Documentation**: https://magicstack.github.io/asyncpg/
 - **Pydantic Documentation**: https://docs.pydantic.dev/
 
