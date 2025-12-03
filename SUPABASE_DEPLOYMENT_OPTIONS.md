@@ -446,3 +446,4 @@ python -m src.cli.ingest --dry-run
 - Install system dependencies if needed (asyncpg may need `gcc` for compilation)
 - Use virtual environments to isolate dependencies
 
+

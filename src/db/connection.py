@@ -157,3 +157,4 @@ def get_db_connection(database_url: Optional[str] = None) -> DatabaseConnection:
     if _db_connection is None:
         _db_connection = DatabaseConnection(database_url)
     return _db_connection
+

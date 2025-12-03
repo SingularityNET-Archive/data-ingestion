@@ -119,3 +119,4 @@ class TestEndToEndIngestion:
 
         # Should skip invalid structure
         assert True
+

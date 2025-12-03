@@ -177,3 +177,4 @@ class JSONValidator:
         )
 
         return valid_records, invalid_records
+

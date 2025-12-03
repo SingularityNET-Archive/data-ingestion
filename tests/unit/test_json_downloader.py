@@ -168,3 +168,4 @@ async def test_downloader_context_manager():
 
         # Client should be closed after context exit
         mock_client.aclose.assert_called_once()
+

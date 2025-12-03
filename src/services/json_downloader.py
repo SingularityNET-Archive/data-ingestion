@@ -128,3 +128,4 @@ class JSONDownloader:
                 continue
 
         return results
+

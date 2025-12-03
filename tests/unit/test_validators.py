@@ -200,3 +200,4 @@ class TestValidateArrayElements:
         assert validate_array_elements("not an array") == []
         assert validate_array_elements(123) == []
         assert validate_array_elements(None) == []
+

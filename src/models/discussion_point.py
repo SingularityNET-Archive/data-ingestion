@@ -68,3 +68,4 @@ class DiscussionPoint:
             json.dumps(raw_json),
         )
         return id
+

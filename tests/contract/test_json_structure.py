@@ -133,3 +133,4 @@ class TestJSONStructureContract:
         ]
         is_valid, errors = validate_json_structure_compatibility(historic_data)
         assert is_valid is True
+
