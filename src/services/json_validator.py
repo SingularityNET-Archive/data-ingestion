@@ -1,10 +1,11 @@
 """JSON validator service for structure compatibility and record validation."""
 
-from typing import List, Dict, Any, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
 from pydantic import ValidationError
 
-from src.models.meeting_summary import MeetingSummary
 from src.lib.logger import get_logger
+from src.models.meeting_summary import MeetingSummary
 
 logger = get_logger(__name__)
 
@@ -56,11 +57,17 @@ def validate_json_structure_compatibility(
             for idx, agenda_item in enumerate(sample["agendaItems"][:5]):  # Check first 5 items
                 if isinstance(agenda_item, dict):
                     # Check for nested collections (optional but validate structure if present)
-                    if "actionItems" in agenda_item and not isinstance(agenda_item["actionItems"], list):
+                    if "actionItems" in agenda_item and not isinstance(
+                        agenda_item["actionItems"], list
+                    ):
                         errors.append(f"agendaItems[{idx}].actionItems must be an array")
-                    if "decisionItems" in agenda_item and not isinstance(agenda_item["decisionItems"], list):
+                    if "decisionItems" in agenda_item and not isinstance(
+                        agenda_item["decisionItems"], list
+                    ):
                         errors.append(f"agendaItems[{idx}].decisionItems must be an array")
-                    if "discussionPoints" in agenda_item and not isinstance(agenda_item["discussionPoints"], list):
+                    if "discussionPoints" in agenda_item and not isinstance(
+                        agenda_item["discussionPoints"], list
+                    ):
                         errors.append(f"agendaItems[{idx}].discussionPoints must be an array")
 
     # Note: Additional fields are allowed (schema flexibility)
@@ -170,6 +177,3 @@ class JSONValidator:
         )
 
         return valid_records, invalid_records
-
-
-

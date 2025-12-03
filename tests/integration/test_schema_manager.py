@@ -1,11 +1,12 @@
 """Integration tests for schema manager service."""
 
-import pytest
 import uuid
-from typing import Optional, Dict, Any, List
-from unittest.mock import AsyncMock, MagicMock, patch
-from src.services.schema_manager import SchemaManager
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from src.models.meeting_summary import MeetingSummary
+from src.services.schema_manager import SchemaManager
 
 
 class TestSchemaManager:
@@ -82,4 +83,3 @@ class TestSchemaManager:
         with patch("src.models.workgroup.Workgroup.upsert", mock_upsert):
             with pytest.raises(Exception):
                 await SchemaManager.upsert_workgroups(mock_conn, workgroups)
-

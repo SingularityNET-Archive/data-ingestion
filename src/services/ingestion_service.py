@@ -1,21 +1,19 @@
 """Ingestion service for processing meeting summaries into database."""
 
 import uuid
-import json
-from typing import List, Dict, Any, Optional
-from datetime import date, datetime
+from typing import Any, Dict, List, Optional
+
 import asyncpg
 
-from src.models.meeting_summary import MeetingSummary
-from src.models.workgroup import Workgroup
-from src.models.meeting import Meeting
-from src.models.agenda_item import AgendaItem
+from src.lib.logger import get_logger
+from src.lib.validators import detect_circular_reference, parse_date
 from src.models.action_item import ActionItem
+from src.models.agenda_item import AgendaItem
 from src.models.decision_item import DecisionItem
 from src.models.discussion_point import DiscussionPoint
+from src.models.meeting import Meeting
+from src.models.meeting_summary import MeetingSummary
 from src.services.schema_manager import SchemaManager
-from src.lib.validators import parse_date, detect_circular_reference
-from src.lib.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -205,14 +203,19 @@ class IngestionService:
 
         # Extract normalized fields (UTF-8 encoding support for Unicode/emoji)
         meeting_type = str(meeting.type).encode("utf-8").decode("utf-8") if meeting.type else None
-        host = str(meeting.meetingInfo.host).encode("utf-8").decode("utf-8") if meeting.meetingInfo.host else None
+        host = (
+            str(meeting.meetingInfo.host).encode("utf-8").decode("utf-8")
+            if meeting.meetingInfo.host
+            else None
+        )
         documenter = (
             str(meeting.meetingInfo.documenter).encode("utf-8").decode("utf-8")
             if meeting.meetingInfo.documenter
             else None
         )
         attendees = [
-            str(attendee).encode("utf-8").decode("utf-8") for attendee in (meeting.meetingInfo.attendees or [])
+            str(attendee).encode("utf-8").decode("utf-8")
+            for attendee in (meeting.meetingInfo.attendees or [])
         ]
         purpose = (
             str(meeting.meetingInfo.purpose).encode("utf-8").decode("utf-8")
@@ -220,14 +223,15 @@ class IngestionService:
             else None
         )
         video_links = [
-            str(link).encode("utf-8").decode("utf-8") for link in (meeting.meetingInfo.videoLinks or [])
+            str(link).encode("utf-8").decode("utf-8")
+            for link in (meeting.meetingInfo.videoLinks or [])
         ]
         working_docs = meeting.meetingInfo.workingDocs  # JSONB handles Unicode
         timestamped_video = meeting.meetingInfo.timestampedVideo  # JSONB handles Unicode
         tags = meeting.tags or {}  # JSONB handles Unicode
 
         # Convert to dict for JSONB storage
-        raw_json = meeting.dict()
+        raw_json = meeting.model_dump()
 
         # Check for circular references (max depth check)
         if detect_circular_reference(raw_json, max_depth=10):
@@ -280,7 +284,7 @@ class IngestionService:
                 meeting_id=meeting_id,
                 status=status,
                 order_index=order_index,
-                raw_json=agenda_item.dict(),
+                raw_json=agenda_item.model_dump(),
             )
 
             # Process action items
@@ -320,7 +324,7 @@ class IngestionService:
                     assignee=action_assignee,
                     due_date=due_date,
                     status=action_status,
-                    raw_json=action_item.dict(),
+                    raw_json=action_item.model_dump(),
                 )
 
             # Process decision items
@@ -352,7 +356,7 @@ class IngestionService:
                     decision_text=decision_text,
                     rationale=decision_rationale,
                     effect_scope=decision_scope,
-                    raw_json=decision_item.dict(),
+                    raw_json=decision_item.model_dump(),
                 )
 
             # Process discussion points
@@ -372,8 +376,5 @@ class IngestionService:
                     id=discussion_point_id,
                     agenda_item_id=agenda_item_id,
                     point_text=point_text,
-                    raw_json=discussion_point.dict(),
+                    raw_json=discussion_point.model_dump(),
                 )
-
-
-

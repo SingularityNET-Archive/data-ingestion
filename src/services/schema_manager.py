@@ -1,12 +1,13 @@
 """Schema manager service for workgroup pre-processing."""
 
 import uuid
-from typing import List, Dict, Set, Any, Optional
+from typing import Any, Dict, List, Optional
+
 import asyncpg
 
+from src.lib.logger import get_logger
 from src.models.meeting_summary import MeetingSummary
 from src.models.workgroup import Workgroup
-from src.lib.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -44,7 +45,7 @@ class SchemaManager:
 
             if workgroup_id not in workgroups:
                 # Use original JSON if available, otherwise use meeting dict
-                raw_json = json_by_workgroup.get(workgroup_id, meeting.dict())
+                raw_json = json_by_workgroup.get(workgroup_id, meeting.model_dump())
 
                 workgroups[workgroup_id] = {
                     "id": workgroup_id,
@@ -85,6 +86,3 @@ class SchemaManager:
                 raise
 
         logger.info(f"Successfully UPSERTed {len(workgroups)} workgroups")
-
-
-

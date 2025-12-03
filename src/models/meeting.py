@@ -1,10 +1,11 @@
 """Meeting database model."""
 
-import uuid
-from typing import Optional, List, Dict, Any
-import asyncpg
-from datetime import datetime, date
 import json
+import uuid
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
+
+import asyncpg
 
 
 class Meeting:
@@ -121,6 +122,3 @@ class Meeting:
             json.dumps(raw_json),
         )
         return id
-
-
-

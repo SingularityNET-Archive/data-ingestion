@@ -1,10 +1,11 @@
 """Integration tests for ingestion service."""
 
-import pytest
-import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
-from src.services.ingestion_service import IngestionService
+
+import pytest
+
 from src.models.meeting_summary import MeetingSummary
+from src.services.ingestion_service import IngestionService
 
 
 class TestIngestionService:
@@ -17,7 +18,7 @@ class TestIngestionService:
         # Make mock_conn work as async context manager
         mock_conn.__aenter__ = AsyncMock(return_value=mock_conn)
         mock_conn.__aexit__ = AsyncMock(return_value=None)
-        
+
         mock_db = MagicMock()
         # Make acquire() return mock_conn directly (not awaited) so it can be used as async context manager
         mock_db.acquire = MagicMock(return_value=mock_conn)
@@ -42,7 +43,9 @@ class TestIngestionService:
         mock_db_connection.acquire.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_process_meetings_workgroup_extraction(self, mock_db_connection, sample_meeting_array):
+    async def test_process_meetings_workgroup_extraction(
+        self, mock_db_connection, sample_meeting_array
+    ):
         """Test that workgroups are extracted and processed first."""
         service = IngestionService(mock_db_connection)
         meetings = [MeetingSummary(**sample_meeting_array[0])]
@@ -53,7 +56,10 @@ class TestIngestionService:
         mock_conn.transaction = AsyncMock(return_value=mock_transaction)
 
         with patch("src.services.schema_manager.SchemaManager.upsert_workgroups", AsyncMock()):
-            with patch("src.services.ingestion_service.IngestionService._process_single_meeting", AsyncMock()):
+            with patch(
+                "src.services.ingestion_service.IngestionService._process_single_meeting",
+                AsyncMock(),
+            ):
                 stats = await service.process_meetings(
                     meetings, "https://example.com/data.json", dry_run=False
                 )
@@ -61,7 +67,9 @@ class TestIngestionService:
         assert stats["workgroups_created"] == 1
 
     @pytest.mark.asyncio
-    async def test_process_meetings_atomic_transaction(self, mock_db_connection, sample_meeting_array):
+    async def test_process_meetings_atomic_transaction(
+        self, mock_db_connection, sample_meeting_array
+    ):
         """Test that each meeting is processed in atomic transaction."""
         service = IngestionService(mock_db_connection)
         meetings = [MeetingSummary(**sample_meeting_array[0])]
@@ -72,7 +80,10 @@ class TestIngestionService:
         mock_conn.transaction = AsyncMock(return_value=mock_transaction)
 
         with patch("src.services.schema_manager.SchemaManager.upsert_workgroups", AsyncMock()):
-            with patch("src.services.ingestion_service.IngestionService._process_single_meeting", AsyncMock()):
+            with patch(
+                "src.services.ingestion_service.IngestionService._process_single_meeting",
+                AsyncMock(),
+            ):
                 await service.process_meetings(
                     meetings, "https://example.com/data.json", dry_run=False
                 )
@@ -110,4 +121,3 @@ class TestIngestionService:
         stats = await service.process_meetings([], "https://example.com/data.json")
         assert stats["processed"] == 0
         assert stats["succeeded"] == 0
-

@@ -1,7 +1,9 @@
 """JSON downloader service using httpx async client."""
 
+from typing import Any, Dict, List, Optional
+
 import httpx
-from typing import List, Dict, Any, Optional
+
 from src.lib.logger import get_logger
 
 logger = get_logger(__name__)
@@ -126,6 +128,3 @@ class JSONDownloader:
                 continue
 
         return results
-
-
-

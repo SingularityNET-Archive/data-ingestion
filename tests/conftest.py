@@ -1,13 +1,14 @@
 """Pytest configuration and shared fixtures."""
 
-import pytest
 import asyncio
 import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 # Add project root to Python path
 project_root = Path(__file__).parent.parent
@@ -80,12 +81,8 @@ def sample_meeting_with_nested_data() -> Dict[str, Any]:
             "documenter": "Jane Smith",
             "attendees": ["Alice", "Bob"],
             "purpose": "Test meeting",
-            "workingDocs": [
-                {"name": "doc1.pdf", "url": "https://example.com/doc1.pdf"}
-            ],
-            "timestampedVideo": {
-                "segments": [{"timestamp": "00:05:30", "topic": "Discussion"}]
-            },
+            "workingDocs": [{"name": "doc1.pdf", "url": "https://example.com/doc1.pdf"}],
+            "timestampedVideo": {"segments": [{"timestamp": "00:05:30", "topic": "Discussion"}]},
         },
         "agendaItems": [
             {
@@ -181,4 +178,3 @@ def reset_logging():
     for logger_name in logging.Logger.manager.loggerDict:
         logger = logging.getLogger(logger_name)
         logger.handlers.clear()
-

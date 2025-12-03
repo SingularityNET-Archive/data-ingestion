@@ -1,10 +1,10 @@
 """End-to-end integration tests for full ingestion pipeline."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from src.cli.ingest import _run_ingestion
-from src.services.json_downloader import JSONDownloader
-from src.services.json_validator import JSONValidator
 
 
 class TestEndToEndIngestion:
@@ -26,7 +26,9 @@ class TestEndToEndIngestion:
             mock_client.aclose = AsyncMock()
             mock_client_class.return_value = mock_client
 
-            await _run_ingestion(urls, None, dry_run=True, skip_validation=False, logger=MagicMock())
+            await _run_ingestion(
+                urls, None, dry_run=True, skip_validation=False, logger=MagicMock()
+            )
 
         # Should complete without errors
         assert True
@@ -50,7 +52,9 @@ class TestEndToEndIngestion:
             mock_client.aclose = AsyncMock()
             mock_client_class.return_value = mock_client
 
-            await _run_ingestion(urls, None, dry_run=True, skip_validation=False, logger=MagicMock())
+            await _run_ingestion(
+                urls, None, dry_run=True, skip_validation=False, logger=MagicMock()
+            )
 
         # Should process both sources
         assert mock_client.get.call_count == 2
@@ -73,7 +77,9 @@ class TestEndToEndIngestion:
 
         def side_effect(url):
             if "fail" in url:
-                raise httpx.HTTPStatusError("Not Found", request=MagicMock(), response=MagicMock(status_code=404))
+                raise httpx.HTTPStatusError(
+                    "Not Found", request=MagicMock(), response=MagicMock(status_code=404)
+                )
             return mock_response
 
         with patch("httpx.AsyncClient") as mock_client_class:
@@ -82,7 +88,9 @@ class TestEndToEndIngestion:
             mock_client.aclose = AsyncMock()
             mock_client_class.return_value = mock_client
 
-            await _run_ingestion(urls, None, dry_run=True, skip_validation=False, logger=MagicMock())
+            await _run_ingestion(
+                urls, None, dry_run=True, skip_validation=False, logger=MagicMock()
+            )
 
         # Should have attempted all 3 sources
         assert mock_client.get.call_count == 3
@@ -105,8 +113,9 @@ class TestEndToEndIngestion:
             mock_client.aclose = AsyncMock()
             mock_client_class.return_value = mock_client
 
-            await _run_ingestion(urls, None, dry_run=True, skip_validation=False, logger=MagicMock())
+            await _run_ingestion(
+                urls, None, dry_run=True, skip_validation=False, logger=MagicMock()
+            )
 
         # Should skip invalid structure
         assert True
-

@@ -1,14 +1,16 @@
 """Unit tests for database models."""
 
-import pytest
 import uuid
+
+import pytest
+
 from src.models.meeting_summary import (
-    MeetingSummary,
-    MeetingInfo,
-    AgendaItem,
     ActionItem,
+    AgendaItem,
     DecisionItem,
     DiscussionPoint,
+    MeetingInfo,
+    MeetingSummary,
 )
 
 
@@ -171,18 +173,17 @@ class TestMeetingSummary:
         """Test that MeetingSummary can be serialized."""
         summary = MeetingSummary(**sample_meeting_summary)
         # Should be able to convert to dict
-        data = summary.dict()
+        data = summary.model_dump()
         assert "workgroup" in data
         assert "meetingInfo" in data
 
     def test_meeting_summary_json_serialization(self, sample_meeting_summary):
         """Test JSON serialization of MeetingSummary."""
         summary = MeetingSummary(**sample_meeting_summary)
-        json_str = summary.json()
+        json_str = summary.model_dump_json()
         assert isinstance(json_str, str)
         # Should be valid JSON
         import json
 
         data = json.loads(json_str)
         assert "workgroup" in data
-

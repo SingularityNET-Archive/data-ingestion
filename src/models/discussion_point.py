@@ -1,10 +1,11 @@
 """Discussion point database model."""
 
-import uuid
-from typing import Optional, Dict, Any
-import asyncpg
-from datetime import datetime
 import json
+import uuid
+from datetime import datetime
+from typing import Any, Dict, Optional
+
+import asyncpg
 
 
 class DiscussionPoint:
@@ -67,6 +68,3 @@ class DiscussionPoint:
             json.dumps(raw_json),
         )
         return id
-
-
-

@@ -1,16 +1,16 @@
 """CLI command for ingesting meeting summaries."""
 
 import asyncio
-import click
 from typing import List, Optional
 
-from src.db.connection import DatabaseConnection, get_db_connection
+import click
+
+from src.db.connection import get_db_connection
 from src.lib.config import Config
-from src.lib.logger import setup_logger, get_logger
+from src.lib.logger import setup_logger
+from src.services.ingestion_service import IngestionService
 from src.services.json_downloader import JSONDownloader
 from src.services.json_validator import JSONValidator
-from src.services.ingestion_service import IngestionService
-
 
 # Default URLs from specification
 DEFAULT_URLS = [
@@ -166,14 +166,20 @@ async def _run_ingestion(
     async with JSONDownloader() as downloader:
         for url in urls:
             try:
-                logger.info(f"Processing source: {url}", extra={"source_url": url, "status": "downloading"})
+                logger.info(
+                    f"Processing source: {url}", extra={"source_url": url, "status": "downloading"}
+                )
 
                 # Download JSON
                 json_data = await downloader.download(url)
 
                 logger.info(
                     f"Downloaded {len(json_data)} records from {url}",
-                    extra={"source_url": url, "status": "validating", "record_count": len(json_data)},
+                    extra={
+                        "source_url": url,
+                        "status": "validating",
+                        "record_count": len(json_data),
+                    },
                 )
 
                 # Validate structure compatibility
@@ -275,6 +281,3 @@ if __name__ == "__main__":
         LOG_FORMAT: Log format (json or text, default: json)
     """
     ingest()
-
-
-

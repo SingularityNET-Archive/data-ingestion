@@ -3,8 +3,8 @@
 import json
 import logging
 import sys
-from io import StringIO
-from src.lib.logger import setup_logger, JSONFormatter, TextFormatter, LogLevel
+
+from src.lib.logger import JSONFormatter, LogLevel, TextFormatter, setup_logger
 
 
 class TestJSONFormatter:
@@ -193,4 +193,3 @@ class TestLogLevel:
         assert LogLevel.WARNING == "WARNING"
         assert LogLevel.ERROR == "ERROR"
         assert LogLevel.CRITICAL == "CRITICAL"
-

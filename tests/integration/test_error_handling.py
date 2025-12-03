@@ -1,8 +1,10 @@
 """Integration tests for error handling scenarios."""
 
-import pytest
-import httpx
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import httpx
+import pytest
+
 from src.services.json_downloader import JSONDownloader
 from src.services.json_validator import JSONValidator
 
@@ -27,12 +29,15 @@ class TestErrorHandling:
     async def test_database_connection_error(self):
         """Test handling of database connection errors."""
         import asyncpg
+
         from src.services.ingestion_service import IngestionService
 
         mock_db = MagicMock()
         # Create a proper async context manager mock
         mock_conn = AsyncMock()
-        mock_db.acquire = AsyncMock(side_effect=asyncpg.PostgresConnectionError("Connection failed"))
+        mock_db.acquire = AsyncMock(
+            side_effect=asyncpg.PostgresConnectionError("Connection failed")
+        )
 
         service = IngestionService(mock_db)
         meetings = []  # Empty for simplicity
@@ -55,7 +60,9 @@ class TestErrorHandling:
             {"invalid": "record1"},
             {"invalid": "record2"},
         ]
-        valid_records, invalid_records = validator.validate_records(data, "https://example.com/data.json")
+        valid_records, invalid_records = validator.validate_records(
+            data, "https://example.com/data.json"
+        )
         assert len(valid_records) == 0
         assert len(invalid_records) == 2
 
@@ -75,7 +82,9 @@ class TestErrorHandling:
 
         def side_effect(url):
             if "fail" in url:
-                raise httpx.HTTPStatusError("Not Found", request=MagicMock(), response=MagicMock(status_code=404))
+                raise httpx.HTTPStatusError(
+                    "Not Found", request=MagicMock(), response=MagicMock(status_code=404)
+                )
             return mock_response
 
         with patch("httpx.AsyncClient") as mock_client_class:
@@ -91,4 +100,3 @@ class TestErrorHandling:
             assert len(results) == 2
             assert "https://example.com/success1.json" in results
             assert "https://example.com/success2.json" in results
-

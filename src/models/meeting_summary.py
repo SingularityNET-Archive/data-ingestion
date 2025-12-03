@@ -1,8 +1,9 @@
 """Pydantic models for meeting summary validation."""
 
 import uuid
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, validator
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class MeetingInfo(BaseModel):
@@ -11,7 +12,9 @@ class MeetingInfo(BaseModel):
     date: str = Field(..., description="Meeting date in ISO 8601 format")
     host: Optional[str] = Field(None, description="Meeting host name")
     documenter: Optional[str] = Field(None, description="Person who documented the meeting")
-    attendees: Optional[List[str]] = Field(default_factory=list, description="List of attendee names")
+    attendees: Optional[List[str]] = Field(
+        default_factory=list, description="List of attendee names"
+    )
     purpose: Optional[str] = Field(None, description="Meeting purpose/description")
     videoLinks: Optional[List[str]] = Field(default_factory=list, description="List of video URLs")
     workingDocs: Optional[List[Dict[str, Any]]] = Field(
@@ -21,7 +24,8 @@ class MeetingInfo(BaseModel):
         None, description="Timestamped video segments"
     )
 
-    @validator("attendees", "videoLinks")
+    @field_validator("attendees", "videoLinks")
+    @classmethod
     def validate_array_elements(cls, v):
         """Remove empty strings from arrays."""
         if v:
@@ -38,14 +42,16 @@ class ActionItem(BaseModel):
     dueDate: Optional[str] = Field(None, description="Due date in ISO 8601 format")
     status: Optional[str] = Field(None, description="Action item status")
 
-    @validator("text")
+    @field_validator("text")
+    @classmethod
     def validate_text(cls, v):
         """Validate action item text is not empty."""
         if not v or not str(v).strip():
             raise ValueError("Action item text cannot be empty")
         return str(v).strip()
 
-    @validator("id")
+    @field_validator("id")
+    @classmethod
     def validate_uuid(cls, v):
         """Validate UUID format if provided."""
         if v:
@@ -64,14 +70,16 @@ class DecisionItem(BaseModel):
     rationale: Optional[str] = Field(None, description="Rationale for decision")
     effectScope: Optional[str] = Field(None, description="Scope/impact of decision")
 
-    @validator("decision")
+    @field_validator("decision")
+    @classmethod
     def validate_decision(cls, v):
         """Validate decision text is not empty."""
         if not v or not str(v).strip():
             raise ValueError("Decision text cannot be empty")
         return str(v).strip()
 
-    @validator("id")
+    @field_validator("id")
+    @classmethod
     def validate_uuid(cls, v):
         """Validate UUID format if provided."""
         if v:
@@ -88,14 +96,16 @@ class DiscussionPoint(BaseModel):
     id: Optional[str] = Field(None, description="Discussion point UUID")
     point: str = Field(..., description="Discussion point text")
 
-    @validator("point")
+    @field_validator("point")
+    @classmethod
     def validate_point(cls, v):
         """Validate discussion point text is not empty."""
         if not v or not str(v).strip():
             raise ValueError("Discussion point text cannot be empty")
         return str(v).strip()
 
-    @validator("id")
+    @field_validator("id")
+    @classmethod
     def validate_uuid(cls, v):
         """Validate UUID format if provided."""
         if v:
@@ -121,7 +131,8 @@ class AgendaItem(BaseModel):
         default_factory=list, description="Discussion points"
     )
 
-    @validator("id")
+    @field_validator("id")
+    @classmethod
     def validate_uuid(cls, v):
         """Validate UUID format if provided."""
         if v:
@@ -131,7 +142,8 @@ class AgendaItem(BaseModel):
                 raise ValueError(f"Invalid UUID format: {v}")
         return v
 
-    @validator("actionItems", "decisionItems", "discussionPoints")
+    @field_validator("actionItems", "decisionItems", "discussionPoints")
+    @classmethod
     def validate_nested_collections(cls, v):
         """Ensure empty arrays are preserved as [] not None."""
         return v if v is not None else []
@@ -148,10 +160,10 @@ class MeetingSummary(BaseModel):
     type: Optional[str] = Field(None, description="Meeting type")
 
     # Allow additional fields for schema flexibility
-    class Config:
-        extra = "allow"  # Accept additional fields not in model
+    model_config = ConfigDict(extra="allow")  # Accept additional fields not in model
 
-    @validator("workgroup_id")
+    @field_validator("workgroup_id")
+    @classmethod
     def validate_workgroup_uuid(cls, v):
         """Validate workgroup_id is a valid UUID."""
         try:
@@ -160,14 +172,16 @@ class MeetingSummary(BaseModel):
             raise ValueError(f"Invalid workgroup_id UUID format: {v}")
         return v
 
-    @validator("workgroup")
+    @field_validator("workgroup")
+    @classmethod
     def validate_workgroup_name(cls, v):
         """Validate workgroup name is not empty."""
         if not v or not str(v).strip():
             raise ValueError("Workgroup name cannot be empty")
         return str(v).strip()
 
-    @validator("agendaItems")
+    @field_validator("agendaItems")
+    @classmethod
     def validate_agenda_items(cls, v):
         """Ensure empty arrays are preserved as [] not None."""
         return v if v is not None else []
@@ -182,6 +196,3 @@ class MeetingSummaryArray(BaseModel):
     def from_json_array(cls, data: List[Dict[str, Any]]) -> "MeetingSummaryArray":
         """Parse array of meeting summary objects."""
         return cls(meetings=[MeetingSummary(**item) for item in data])
-
-
-

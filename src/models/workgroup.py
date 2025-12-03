@@ -1,9 +1,10 @@
 """Workgroup database model."""
 
 import uuid
-from typing import Optional, Dict, Any
-import asyncpg
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+import asyncpg
 
 
 class Workgroup:
@@ -54,6 +55,7 @@ class Workgroup:
             Workgroup UUID
         """
         import json
+
         from src.lib.logger import get_logger
 
         logger = get_logger(__name__)
@@ -109,6 +111,3 @@ class Workgroup:
             created_at=row["created_at"],
             updated_at=row["updated_at"],
         )
-
-
-

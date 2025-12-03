@@ -1,12 +1,11 @@
 """Unit tests for JSON validator service."""
 
-import pytest
+from src.models.meeting_summary import MeetingSummary
 from src.services.json_validator import (
     JSONValidator,
     validate_json_structure_compatibility,
     validate_record,
 )
-from src.models.meeting_summary import MeetingSummary
 
 
 class TestValidateJSONStructureCompatibility:
@@ -206,4 +205,3 @@ class TestJSONValidator:
         )
         assert len(valid_records) == 0
         assert len(invalid_records) == 2
-

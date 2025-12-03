@@ -1,15 +1,14 @@
 """Unit tests for validation utilities."""
 
-import pytest
 from datetime import datetime
 
 from src.lib.validators import (
-    validate_uuid,
-    parse_date,
     detect_circular_reference,
-    validate_url,
+    parse_date,
     sanitize_text,
     validate_array_elements,
+    validate_url,
+    validate_uuid,
 )
 
 
@@ -201,4 +200,3 @@ class TestValidateArrayElements:
         assert validate_array_elements("not an array") == []
         assert validate_array_elements(123) == []
         assert validate_array_elements(None) == []
-

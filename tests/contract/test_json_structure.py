@@ -1,6 +1,5 @@
 """Contract tests for JSON structure validation."""
 
-import pytest
 from src.services.json_validator import validate_json_structure_compatibility
 
 
@@ -9,7 +8,14 @@ class TestJSONStructureContract:
 
     def test_required_top_level_fields(self):
         """Contract: All required top-level fields must be present."""
-        required_fields = ["workgroup", "workgroup_id", "meetingInfo", "agendaItems", "tags", "type"]
+        required_fields = [
+            "workgroup",
+            "workgroup_id",
+            "meetingInfo",
+            "agendaItems",
+            "tags",
+            "type",
+        ]
         data = [{}]
         is_valid, errors = validate_json_structure_compatibility(data)
         assert is_valid is False
@@ -127,4 +133,3 @@ class TestJSONStructureContract:
         ]
         is_valid, errors = validate_json_structure_compatibility(historic_data)
         assert is_valid is True
-

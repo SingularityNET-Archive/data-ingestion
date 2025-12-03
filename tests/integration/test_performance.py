@@ -1,10 +1,12 @@
 """Performance tests for ingestion pipeline."""
 
-import pytest
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
-from src.services.json_downloader import JSONDownloader
+
+import pytest
+
 from src.services.ingestion_service import IngestionService
+from src.services.json_downloader import JSONDownloader
 
 
 class TestPerformance:
@@ -71,7 +73,10 @@ class TestPerformance:
         service = IngestionService(mock_db)
 
         with patch("src.services.schema_manager.SchemaManager.upsert_workgroups", AsyncMock()):
-            with patch("src.services.ingestion_service.IngestionService._process_single_meeting", AsyncMock()):
+            with patch(
+                "src.services.ingestion_service.IngestionService._process_single_meeting",
+                AsyncMock(),
+            ):
                 start_time = time.time()
                 stats = await service.process_meetings(
                     meetings, "https://example.com/data.json", dry_run=False
@@ -92,4 +97,3 @@ class TestPerformance:
 
         # Each record should process in under 1 second on average
         assert time_per_record < 1.0
-

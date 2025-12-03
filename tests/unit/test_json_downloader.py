@@ -1,8 +1,9 @@
 """Unit tests for JSON downloader service."""
 
-import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
-from unittest.mock import AsyncMock, patch, MagicMock
+import pytest
 
 from src.services.json_downloader import JSONDownloader
 
@@ -129,7 +130,9 @@ async def test_download_multiple_partial_failure(mock_httpx_response):
         mock_client.get = AsyncMock(
             side_effect=[
                 mock_httpx_response,
-                httpx.HTTPStatusError("Not Found", request=MagicMock(), response=MagicMock(status_code=404)),
+                httpx.HTTPStatusError(
+                    "Not Found", request=MagicMock(), response=MagicMock(status_code=404)
+                ),
             ]
         )
         mock_client_class.return_value = mock_client
@@ -165,4 +168,3 @@ async def test_downloader_context_manager():
 
         # Client should be closed after context exit
         mock_client.aclose.assert_called_once()
-

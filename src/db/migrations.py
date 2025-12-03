@@ -1,9 +1,10 @@
 """Database migration utility to execute SQL schema script."""
 
 import os
-import asyncpg
 from pathlib import Path
 from typing import Optional
+
+import asyncpg
 
 from src.lib.logger import get_logger
 
@@ -36,7 +37,7 @@ async def run_migration(
 
     # Read SQL script
     logger.info(f"Reading schema file: {schema_path}")
-    with open(schema_path, "r", encoding="utf-8") as f:
+    with open(schema_path, encoding="utf-8") as f:
         sql_script = f.read()
 
     # Get database URL
@@ -109,9 +110,9 @@ async def verify_schema(database_url: Optional[str] = None) -> bool:
 
     try:
         query = """
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public' 
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
               AND table_name = ANY($1::text[])
         """
         result = await conn.fetch(query, required_tables)
@@ -126,6 +127,3 @@ async def verify_schema(database_url: Optional[str] = None) -> bool:
         return True
     finally:
         await conn.close()
-
-
-
