@@ -1,7 +1,7 @@
 """Schema manager service for workgroup pre-processing."""
 
 import uuid
-from typing import List, Dict, Set, Any
+from typing import List, Dict, Set, Any, Optional
 import asyncpg
 
 from src.models.meeting_summary import MeetingSummary
