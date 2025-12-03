@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for meeting summaries ingestion pipeline
-FROM python:3.9-slim as builder
+FROM python:3.9-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -38,3 +38,6 @@ ENV PATH=/root/.local/bin:$PATH
 
 # Default command
 CMD ["python", "-m", "src.cli.ingest"]
+
+
+

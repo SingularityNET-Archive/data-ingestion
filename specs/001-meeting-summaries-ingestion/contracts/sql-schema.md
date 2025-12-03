@@ -432,3 +432,6 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
 - Timestamps use `TIMESTAMP WITH TIME ZONE` for timezone-aware storage
 - JSONB columns use GIN indexes for efficient JSON queries
 - Array columns (`attendees`, `video_links`) use PostgreSQL native array types
+
+
+

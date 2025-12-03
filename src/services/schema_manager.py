@@ -85,3 +85,6 @@ class SchemaManager:
                 raise
 
         logger.info(f"Successfully UPSERTed {len(workgroups)} workgroups")
+
+
+

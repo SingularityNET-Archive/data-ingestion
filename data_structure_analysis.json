@@ -1,0 +1,724 @@
+{
+  "files": {
+    "meeting-summaries-array-4.json": {
+      "file": "meeting-summaries-array-4.json",
+      "record_count": 1,
+      "top_level_keys": [
+        "agendaItems",
+        "canceledSummary",
+        "meetingInfo",
+        "noSummaryGiven",
+        "tags",
+        "type",
+        "workgroup",
+        "workgroup_id"
+      ],
+      "meeting_info_keys": [
+        "date",
+        "documenter",
+        "host",
+        "peoplePresent",
+        "purpose",
+        "timestampedVideo",
+        "typeOfMeeting",
+        "workingDocs"
+      ],
+      "agenda_item_keys": [
+        "actionItems",
+        "status"
+      ],
+      "sample_record": {
+        "workgroup": "Deep Funding Town Hall",
+        "workgroup_id": "481edee0-90b3-4a78-8746-1b6e1c9e37de",
+        "meetingInfo": {
+          "typeOfMeeting": "Biweekly",
+          "date": "2022-06-23",
+          "host": "Jan Horlings",
+          "documenter": "Gorga Siagian",
+          "peoplePresent": "Johann Sammy, Austin, XyrisKenn, ParagOza, PeterE",
+          "purpose": "Discussion of Deep Funding Round 1 Projects Kickoff | Part 1",
+          "workingDocs": [
+            {
+              "title": "Deep Funding awarded teams - Community Questions",
+              "link": "https://forms.gle/QFEEvqHZGGQXnjbu7"
+            }
+          ],
+          "timestampedVideo": {
+            "url": "https://www.youtube.com/watch?v=jdyoPr5mNZ0&list=PLAJnaovHtaFSltKLFFqQ4N7JGdCxq3i9q&index=30",
+            "intro": "This is a recording of the first kick-off session for awarded teams of Deep Funding Round 1, where the projects further introduce themselves.  If you have any questions to the teams, please fill in this form: https://forms.gle/QFEEvqHZGGQXnjbu7  Teams and their proposals on this session:  Carbix & Xyris - Avatar 2 Human Learning: Net Zero and Carbon Negative Emissons |  https://proposals.deepfunding.ai/graduated/accepted/d592f698-9c0c-4617-a7ef-2ebed820d9ad  Hetzerk - Decentralized Physics Simulation |  https://proposals.deepfunding.ai/graduated/accepted/b213135a-0c0c-43a9-a73f-cbed776c5b48  Zero2ai - Simply AI with trust |  https://proposals.deepfunding.ai/graduated/accepted/97cb76b2-a0a7-421e-acf6-70126d2c493e",
+            "timestamps": "2:05 Metaverse Installation 2:33 Process Flowchart 7:56 Avatar Communication 11:16 Text to Speech 17:22 Project To Implement Decentralized Physics Simulations 19:15 State of the Standard Model of Physics  29:30 Hypercycle 36:59 Does Your Model Only Apply to Organics or is it  Can Be Used for Inorganic Molecules 41:32 Demo Of the Zero2bi Platform"
+          }
+        },
+        "agendaItems": [
+          {
+            "status": "carry over",
+            "actionItems": [
+              {
+                "status": "todo"
+              }
+            ]
+          }
+        ],
+        "tags": {
+          "topicsCovered": "Deep Funding round 1, Projects Kickoff, Part 1, Simply AI, Decentralized, Net Zero and Carbon",
+          "emotions": "enthusiastic, energetic, hopeful, small"
+        },
+        "type": "Custom",
+        "noSummaryGiven": false,
+        "canceledSummary": false
+      }
+    },
+    "meeting-summaries-array-5.json": {
+      "file": "meeting-summaries-array-5.json",
+      "record_count": 2,
+      "top_level_keys": [
+        "agendaItems",
+        "canceledSummary",
+        "meetingInfo",
+        "noSummaryGiven",
+        "tags",
+        "type",
+        "workgroup",
+        "workgroup_id"
+      ],
+      "meeting_info_keys": [
+        "date",
+        "documenter",
+        "host",
+        "peoplePresent",
+        "purpose",
+        "timestampedVideo",
+        "typeOfMeeting",
+        "workingDocs"
+      ],
+      "agenda_item_keys": [
+        "actionItems",
+        "decisionItems",
+        "discussionPoints",
+        "issues",
+        "status",
+        "townHallUpdates"
+      ],
+      "sample_record": {
+        "workgroup": "Onboarding Workgroup",
+        "workgroup_id": "208afbe1-7830-4409-9c74-1f05171ebe01",
+        "meetingInfo": {
+          "typeOfMeeting": "Weekly",
+          "date": "2023-11-16",
+          "host": "Vanessa",
+          "documenter": "Onyeka",
+          "peoplePresent": "Peter, Sucren, love, tone",
+          "workingDocs": [
+            {
+              "title": "Onboarding research Google form",
+              "link": "https://forms.gle/dJMGVP7FZDMdyw6h6"
+            },
+            {
+              "title": "Onboarding support for other workgroups Google doc",
+              "link": "https://docs.google.com/document/d/1fYx3CXgT-NGi19TmBUxS3lTMu93Hx68cpGST8TED9cA/edit?usp=sharing"
+            },
+            {
+              "title": "Commissioning Video clips Google doc",
+              "link": "https://docs.google.com/document/d/1qUp1g2q8fooIgIyjVM5uUOhT-_18A-HOs77A5gQeuDQ/edit?usp=sharing"
+            },
+            {
+              "title": "Twitter thread draft google doc",
+              "link": "https://docs.google.com/document/d/184jGMoNmQ4uaumRf-DWqEhgdgDEIvWDWRyaZhiZIXRk/edit?usp=sharing"
+            }
+          ]
+        },
+        "agendaItems": [
+          {
+            "status": "carry over",
+            "townHallUpdates": "-Launch of the Onboarding survey form. -Collaboration with the Gamers Guild.",
+            "issues": [
+              "Getting started Twitter thread",
+              "Continuous Onboarding Document",
+              "Question of how to practically use the meeting summary tool"
+            ],
+            "actionItems": [
+              {
+                "text": "Sucre to tweak the scripts and relay the imagery for the onboarding video to LilyCupcake",
+                "assignee": "Sucren",
+                "status": "in progress",
+                "dueDate": "2023-11-23"
+              },
+              {
+                "status": "in progress",
+                "text": "Sucre to share our Commissioning Video clips Google doc",
+                "assignee": "Sucren",
+                "dueDate": "2024-01-23"
+              },
+              {
+                "text": "Sucre to meet Workgroup leads and discuss when we can visit their meetings to discuss onboarding.",
+                "assignee": "Sucren",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Vani and Onyeka to make changes to the survey form as discussed in the meeting.",
+                "assignee": "Onyeka , Vanessa",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Sucre to create a sign-up sheet for visits to other WGs to discuss onboarding",
+                "assignee": "Sucren",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Lady Tempestt to make necessary corrections to the Twitter thread Doc.",
+                "assignee": "LadyTempestt",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Sucre to send the Twitter thread Doc to Mikasa in the writers workgroup once it's finished",
+                "assignee": "Sucren",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Sucre to change the cover photo of the Getting started Doc",
+                "assignee": "Sucren",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Vani to add an FAQ on 'What are GMBLs' to the Getting started Doc.",
+                "assignee": "Vanessa",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Sucre to add an FAQ on 'How do I get rewarded?'",
+                "assignee": "Sucren",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Onyeka to add an FAQ on 'What wallet is to be used'",
+                "assignee": "Onyeka",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Vani to make a post on the Ambassador general channel about new members joining the Gamer's Guild.",
+                "assignee": "Vanessa",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Onyeka to create visuals for the Twitter thread doc",
+                "assignee": "Onyeka",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              },
+              {
+                "text": "Sucre to make the agreed changes to Dework Introductions task.",
+                "assignee": "Sucren",
+                "dueDate": "2023-11-23",
+                "status": "in progress"
+              }
+            ],
+            "decisionItems": [
+              {
+                "effect": "affectsOnlyThisWorkgroup",
+                "decision": "We agreed to set a deadline (1st of December) for the Onboarding Survey Form."
+              },
+              {
+                "effect": "mayAffectOtherPeople",
+                "decision": "Onboarding WG has agreed to test the new archives documentation tool for meeting minutes."
+              },
+              {
+                "decision": "We agreed that our estimate of 15 mins for the completion of the survey form is about right.",
+                "effect": "affectsOnlyThisWorkgroup"
+              },
+              {
+                "decision": "We agreed to launch the survey form on the 21st of November 2023 in the Town Hall meeting, after checking it in our next meeting",
+                "effect": "affectsOnlyThisWorkgroup"
+              },
+              {
+                "decision": "We have decided to add some visuals to our Twitter thread about onboarding process.",
+                "effect": "affectsOnlyThisWorkgroup"
+              },
+              {
+                "decision": "We agreed on rewarding 10 AGIX and 50 GMBLs for completion of the Introductory task.",
+                "effect": "affectsOnlyThisWorkgroup"
+              }
+            ],
+            "discussionPoints": [
+              "Minutes of last Meeting",
+              "Changes to the Onboarding survey form",
+              "Next Ambassador TH Update",
+              "Twitter thread on the Getting started doc",
+              "Continuous Onboarding"
+            ]
+          }
+        ],
+        "tags": {
+          "topicsCovered": "Onboarding survey, Collaboration, Town Hall update, Rewards, Getting Started twitter thread, New Onboarding video",
+          "emotions": "speedy , Casual, Collaborative"
+        },
+        "type": "Custom"
+      }
+    },
+    "meeting-summaries-array-6.json": {
+      "file": "meeting-summaries-array-6.json",
+      "record_count": 552,
+      "top_level_keys": [
+        "agendaItems",
+        "canceledSummary",
+        "canceledSummaryText",
+        "confirmed",
+        "date",
+        "meetingInfo",
+        "meeting_id",
+        "noSummaryGiven",
+        "noSummaryGivenText",
+        "tags",
+        "type",
+        "updated_at",
+        "username",
+        "workgroup",
+        "workgroup_id"
+      ],
+      "meeting_info_keys": [
+        "date",
+        "documenter",
+        "googleSlides",
+        "host",
+        "mediaLink",
+        "meetingVideoLink",
+        "miroBoardLink",
+        "otherMediaLink",
+        "peoplePresent",
+        "purpose",
+        "timestampedVideo",
+        "townHallNumber",
+        "transcriptLink",
+        "translator",
+        "typeOfMeeting",
+        "workingDocs"
+      ],
+      "agenda_item_keys": [
+        "actionItems",
+        "agenda",
+        "decisionItems",
+        "discussion",
+        "discussionPoints",
+        "gameRules",
+        "issues",
+        "leaderboard",
+        "learningPoints",
+        "meetingTopics",
+        "narrative",
+        "status",
+        "townHallSummary",
+        "townHallUpdates"
+      ],
+      "sample_record": {
+        "workgroup": "Knowledge Base Workgroup",
+        "workgroup_id": "96f6ef88-5285-4ec6-8fe4-f2ab0347be00",
+        "meetingInfo": {
+          "typeOfMeeting": "Biweekly",
+          "date": "2024-01-24",
+          "host": "Tevo",
+          "documenter": "Tevo",
+          "peoplePresent": "Tevo, Shankar, Vanessa, Peter, Andr\u00e9, love, Slate, Jade, Emotu, Sucren, Friday, Anthony, devon",
+          "purpose": "Aggregating Ambassador Program assets and relevant information under GitBook",
+          "meetingVideoLink": "https://miro.com/app/board/uXjVN-9yivE=/?moveToWidget=3458764574355478962&cot=10",
+          "miroBoardLink": "https://miro.com/app/board/uXjVN-9yivE=/?moveToWidget=3458764574355478962&cot=10",
+          "otherMediaLink": "https://app.dework.xyz/singularitynet-ambas/process-guild",
+          "workingDocs": [
+            {
+              "title": "Knowledge Base WG",
+              "link": "https://docs.google.com/document/d/1Lb9DwNSzmToyMhl5qZG9QEFipH9ZmlnDNaVU1jYeqFc/edit?usp=sharing"
+            }
+          ]
+        },
+        "agendaItems": [
+          {
+            "agenda": "Continues Onboarding",
+            "status": "resolved",
+            "actionItems": [
+              {
+                "text": "Create an onboarding feedback form that is mainly meant for new members",
+                "assignee": "Tevo",
+                "status": "todo"
+              }
+            ],
+            "decisionItems": [
+              {
+                "decision": "Before doing public onboarding, we need clear entry-level tasks",
+                "effect": "affectsOnlyThisWorkgroup"
+              },
+              {
+                "decision": "Go through participant task in the call to make sure we are able to recognize new participants in Dework",
+                "effect": "affectsOnlyThisWorkgroup"
+              }
+            ],
+            "discussionPoints": [
+              "How new people are introduced?",
+              "How are participants encouraged to learn how to engage in and about workgroup activities?",
+              "Information that is available to learn about workgroup",
+              "How do new people become workgroup members?",
+              "potential causes of low retention rate of contributors"
+            ]
+          },
+          {
+            "agenda": "Introduction to Knowledge Base Workgroup",
+            "status": "resolved",
+            "actionItems": [
+              {
+                "status": "todo"
+              }
+            ],
+            "discussionPoints": [
+              "Went over the Resource planning process",
+              "Share examples of the task outputs",
+              "Explained rewards for different tasks"
+            ]
+          },
+          {
+            "agenda": "Reviewed Onboarding Items",
+            "status": "carry over",
+            "actionItems": [
+              {
+                "status": "todo"
+              }
+            ],
+            "decisionItems": [
+              {
+                "decision": "Include 'Onboarding WG report Q4 2023 - Google Doc' in GitBook",
+                "effect": "mayAffectOtherPeople"
+              }
+            ],
+            "discussionPoints": [
+              "Should Ambassador Program Onboarding Analysis be part of GitBook?",
+              "Should the Getting Started Google Doc version be available in GitBook?",
+              "The goal of an Ambassador GitBook: Should it be for resource management, How it related to Onboarding, What type of knowledge it should include"
+            ]
+          }
+        ],
+        "tags": {
+          "topicsCovered": "Onboarding, Getting Started, Video Script, Analysis, Proposal, Introduction, Feedback Form, Ambassador GitBook, Miro Board",
+          "emotions": "This session had a lot of new members and we needed to slow down a lot to get people introduced into workgroup",
+          "other": "Onboarding WG Quarterly Report - https://docs.google.com/document/d/173UxTc38LhXwR6QuJCKpH9CivgMCQhL4jZZXoMOw-nM/edit#heading=h.ybfi2uikflvv, Ambassador Program Onboarding Analysis - https://docs.google.com/document/d/1buAkowcI_kEbycPd_U6nkJeAeryOwYb_o9Nt18dKozc/edit#heading=h.c3dwzdvtnpi1, Ambassador Program Getting Started guide - https://docs.google.com/document/d/1q4dhediWgcbgAP3Wfsky_-roVyfCUe6xi-dhBdHbU4s/edit#heading=h.xtpvv9xicqnq, Onboarding Workgroup Miro Board - https://miro.com/app/board/uXjVM5jyehQ=/?moveToWidget=3458764576645510044&cot=14"
+        },
+        "type": "Custom"
+      }
+    },
+    "meeting-summaries-array-7.json": {
+      "file": "meeting-summaries-array-7.json",
+      "record_count": 122,
+      "top_level_keys": [
+        "agendaItems",
+        "canceledSummary",
+        "canceledSummaryText",
+        "meetingInfo",
+        "noSummaryGiven",
+        "noSummaryGivenText",
+        "tags",
+        "type",
+        "workgroup",
+        "workgroup_id"
+      ],
+      "meeting_info_keys": [
+        "date",
+        "documenter",
+        "host",
+        "mediaLink",
+        "meetingVideoLink",
+        "miroBoardLink",
+        "otherMediaLink",
+        "peoplePresent",
+        "purpose",
+        "timestampedVideo",
+        "typeOfMeeting",
+        "workingDocs"
+      ],
+      "agenda_item_keys": [
+        "actionItems",
+        "agenda",
+        "decisionItems",
+        "discussion",
+        "discussionPoints",
+        "gameRules",
+        "meetingTopics",
+        "narrative",
+        "status"
+      ],
+      "sample_record": {
+        "workgroup": "Archives Workgroup",
+        "workgroup_id": "05ddaaf0-1dde-4d84-a722-f82c8479a8e9",
+        "meetingInfo": {
+          "typeOfMeeting": "Monthly",
+          "date": "2025-01-08",
+          "host": "Stephen [QADAO]",
+          "documenter": "CallyFromAuron",
+          "peoplePresent": "Andr\u00e9, CallyFromAuron, Stephen [QADAO], LadyTempestt, Gorga Siagian, PeterE, Clement Umoh, AshleyDawn, esewilliams, LordKizzy, Effiom",
+          "purpose": "Regular monthly meeting of the Archives WorkGroup in the SingularityNET Ambassador program",
+          "meetingVideoLink": "https://www.youtube.com/playlist?list=PL4dGsCqdRj6ct6TwdrVKm_Bjg2ToCjzQh",
+          "workingDocs": [
+            {
+              "title": "Archives Dashboard",
+              "link": "https://archives-dashboard.netlify.app"
+            },
+            {
+              "title": "Q1 2025 budget",
+              "link": "https://docs.google.com/spreadsheets/d/14IYxBj-9MGCZRkYIupwvbHgPYZgohnyMSQ-EUFBgpYI/edit?usp=sharing"
+            },
+            {
+              "title": "Archive names (a list of the name that people are most commonly known by in the Archives)",
+              "link": "https://docs.google.com/spreadsheets/d/1r5LDA7yiERtWuu-HHYsBiG-RLyjDCtTZUB8H-xZHFsE/edit?usp=sharing"
+            },
+            {
+              "title": "GitHub Issue for this meeting",
+              "link": "https://github.com/SingularityNET-Archive/SingularityNET-Archive/issues/239"
+            }
+          ],
+          "timestampedVideo": {}
+        },
+        "agendaItems": [
+          {
+            "status": "carry over",
+            "actionItems": [
+              {
+                "text": "Vani to approach DeepFunding, to ask about the issue raised in our November meeting about documentation of DF Town Hall: i.e. sometimes timestamps are not great, and additional work needs to be done to document the sessions in a meaningful way - could DF itself could make any further contribution to the work, e.g. by paying someone from the Town Hall team to add the documentation to the summary tool?  and discuss how the Archives dovetails with documentation that DF is doing itself, such as https://community.deepfunding.ai/",
+                "assignee": "CallyFromAuron",
+                "dueDate": "15 January 2025",
+                "status": "todo"
+              }
+            ],
+            "decisionItems": [
+              {
+                "decision": "Gorga presented Gamers' Guild's representation of Archives WG in Roblox. We agreed it was great, but suggested some minor tweaks to which NPC is in each room. We commented that  - like a knowledge graph, this is a visual way of representing structures and connections. The conversational interface in the game may be useful for structuring questions about the archive - e.g. a gamified way to explore a knowledge graph - it would be amazing in the long term if the Archives itself could be integrated with the game, so that in the Archives room, a player could actually access and search the Archives.",
+                "effect": "mayAffectOtherPeople"
+              },
+              {
+                "decision": "Stephen showed updates to the AI workflow issue https://github.com/SingularityNET-Archive/SingularityNET-Archive/issues/233. He's working on a presentation on philosopher Robert Stalnaker's idea of context (possible worlds, centred worlds), and how this might relate to an ethical approach to the use of AI",
+                "rationale": "An LLM needs to be used in a contextualised way in order to be fully ethical - Stalnaker's approach to context could be a useful way to look at this, and could give an interesting angle for our didactic work.",
+                "effect": "affectsOnlyThisWorkgroup"
+              },
+              {
+                "decision": "Stephen presented recent work on LLM development https://github.com/SingularityNET-Archive/SingularityNET-Archive/issues/241 . We agreed that while it is easy to take a 'snapshot' of flat-file data and feed it into Langchain or similar, there is no guide to forming a semantic query. So how do we structure our data to prepare it for interfacing with generative AI?   This will be the next phase of the work on this issue - we are now pivoting to a graph structure to give better context and dimensionality.  - You create an instance (in the cloud, for scalability, if you have a large dataset) - Import is from a CSV file, but you an also integrate graph sources and other sources - It creates nodes (data entities) - You can then design your own conceptual schema/framework on top of this layer, to define what the edges are that connect the nodes. (Multi-dimensional - there might be many connections depending on context).",
+                "effect": "mayAffectOtherPeople"
+              },
+              {
+                "decision": "Andr\u00e9, meeting tool redesign: he has added some new names to the controlled vocab for people's names; and is planning to design something for the process of approving new names and updating where we have a wrong version of a name.   He's also updated the timeline folders for 2025 (atm this can't be automated, but it does only need to be done annually so not too bad), and fixed a caching bug which had been causing the dashboard to sometimes display older (non-updated) versions of summaries.",
+                "effect": "mayAffectOtherPeople"
+              },
+              {
+                "decision": "We discussed our tag taxonomy https://github.com/SingularityNET-Archive/SingularityNET-Archive/issues/133, and whether our (deduped) set of tags could be a *layer* that sits on top of our data",
+                "effect": "affectsOnlyThisWorkgroup"
+              },
+              {
+                "decision": "We noted that given current low-ish token price, we're not able to start the proposed initiative to create a skilled documentation team. We'll review this next meeting.",
+                "rationale": "We had this in our Q1 budget 'if token price rises sufficiently above $0.55' (the exchange rate at which Q1 budgets were calculated). Price hasn't risen enough.",
+                "effect": "affectsOnlyThisWorkgroup"
+              },
+              {
+                "decision": "We briefly discussed the plan to further develop an AI ethics policy for the Archives.",
+                "rationale": "Transparency in the use of AI, human oversight, contextuality, and accountability are obviously key elements; so are auto-didacticism and learning resources (can people teach themselves to understand what is being done when AI is used in recordkeeping?)",
+                "effect": "mayAffectOtherPeople"
+              }
+            ]
+          }
+        ],
+        "tags": {
+          "topicsCovered": "RAG retrieval process, knowledge graph, Tag taxonomy, meeting summary tool, graph rag, Robert Stalnaker, philosophy, Gamers Guild, Roblox, visual, context, controlled vocabularies",
+          "emotions": "interesting, wide-ranging, didactic, Friendly"
+        },
+        "type": "Custom",
+        "noSummaryGiven": false,
+        "canceledSummary": false
+      }
+    }
+  },
+  "merged_structure": {
+    "workgroup": {
+      "presence": 677,
+      "presence_pct": 100.0,
+      "type": "str",
+      "type_variations": {
+        "str": 677
+      }
+    },
+    "workgroup_id": {
+      "presence": 677,
+      "presence_pct": 100.0,
+      "type": "str",
+      "type_variations": {
+        "str": 677
+      }
+    },
+    "meetingInfo": {
+      "presence": 677,
+      "presence_pct": 100.0,
+      "type": "object",
+      "type_variations": {
+        "object": 677
+      }
+    },
+    "agendaItems": {
+      "presence": 629,
+      "presence_pct": 92.90989660265879,
+      "type": "array[object]",
+      "type_variations": {
+        "array[object]": 627,
+        "array[empty]": 2
+      }
+    },
+    "tags": {
+      "presence": 620,
+      "presence_pct": 91.5805022156573,
+      "type": "object",
+      "type_variations": {
+        "object": 620
+      }
+    },
+    "type": {
+      "presence": 677,
+      "presence_pct": 100.0,
+      "type": "str",
+      "type_variations": {
+        "str": 677
+      }
+    },
+    "noSummaryGiven": {
+      "presence": 654,
+      "presence_pct": 96.602658788774,
+      "type": "bool",
+      "type_variations": {
+        "bool": 654
+      }
+    },
+    "canceledSummary": {
+      "presence": 636,
+      "presence_pct": 93.94387001477105,
+      "type": "bool",
+      "type_variations": {
+        "bool": 636
+      }
+    },
+    "noSummaryGivenText": {
+      "presence": 585,
+      "presence_pct": 86.41063515509602,
+      "type": "str",
+      "type_variations": {
+        "str": 585
+      }
+    },
+    "canceledSummaryText": {
+      "presence": 585,
+      "presence_pct": 86.41063515509602,
+      "type": "str",
+      "type_variations": {
+        "str": 585
+      }
+    },
+    "username": {
+      "presence": 2,
+      "presence_pct": 0.29542097488921715,
+      "type": "str",
+      "type_variations": {
+        "str": 2
+      }
+    },
+    "meeting_id": {
+      "presence": 2,
+      "presence_pct": 0.29542097488921715,
+      "type": "str",
+      "type_variations": {
+        "str": 2
+      }
+    },
+    "confirmed": {
+      "presence": 2,
+      "presence_pct": 0.29542097488921715,
+      "type": "bool",
+      "type_variations": {
+        "bool": 2
+      }
+    },
+    "date": {
+      "presence": 2,
+      "presence_pct": 0.29542097488921715,
+      "type": "str",
+      "type_variations": {
+        "str": 2
+      }
+    },
+    "updated_at": {
+      "presence": 2,
+      "presence_pct": 0.29542097488921715,
+      "type": "str",
+      "type_variations": {
+        "str": 2
+      }
+    }
+  },
+  "summary": {
+    "total_files": 4,
+    "total_records": 677,
+    "common_top_level_keys": [
+      "workgroup",
+      "workgroup_id",
+      "meetingInfo",
+      "type"
+    ],
+    "all_top_level_keys": [
+      "agendaItems",
+      "canceledSummary",
+      "canceledSummaryText",
+      "confirmed",
+      "date",
+      "meetingInfo",
+      "meeting_id",
+      "noSummaryGiven",
+      "noSummaryGivenText",
+      "tags",
+      "type",
+      "updated_at",
+      "username",
+      "workgroup",
+      "workgroup_id"
+    ],
+    "all_meeting_info_keys": [
+      "date",
+      "documenter",
+      "googleSlides",
+      "host",
+      "mediaLink",
+      "meetingVideoLink",
+      "miroBoardLink",
+      "otherMediaLink",
+      "peoplePresent",
+      "purpose",
+      "timestampedVideo",
+      "townHallNumber",
+      "transcriptLink",
+      "translator",
+      "typeOfMeeting",
+      "workingDocs"
+    ],
+    "all_agenda_item_keys": [
+      "actionItems",
+      "agenda",
+      "decisionItems",
+      "discussion",
+      "discussionPoints",
+      "gameRules",
+      "issues",
+      "leaderboard",
+      "learningPoints",
+      "meetingTopics",
+      "narrative",
+      "status",
+      "townHallSummary",
+      "townHallUpdates"
+    ]
+  }
+}

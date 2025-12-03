@@ -40,3 +40,6 @@
 - Edge cases cover multi-source failure scenarios and data overlap
 - Historic data integration with existing 2025 data is clearly specified
 - UPSERT behavior for overlapping records is defined
+
+
+

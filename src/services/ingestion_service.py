@@ -374,3 +374,6 @@ class IngestionService:
                     point_text=point_text,
                     raw_json=discussion_point.dict(),
                 )
+
+
+

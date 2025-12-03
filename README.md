@@ -4,11 +4,19 @@ A Python-based data ingestion pipeline that downloads meeting summary JSON data 
 
 ## Features
 
-- **JSON Data Ingestion**: Downloads and processes meeting summaries from multiple sources (2022-2025)
+- **Multi-Source JSON Data Ingestion**: Downloads and processes meeting summaries from multiple sources (2022-2025)
+  - Supports historic data from 2022, 2023, 2024, and current data from 2025
+  - Processes multiple JSON sources sequentially with transaction integrity
+  - Continues processing remaining sources if one source fails
 - **Structure Validation**: Validates JSON compatibility before ingestion
+  - Validates structure compatibility for all historic sources before processing any records
+  - Handles missing optional fields and accepts additional fields for schema flexibility
 - **Normalized Storage**: Stores data in PostgreSQL with normalized relational tables and JSONB columns
 - **Idempotent Processing**: UPSERT operations prevent duplicates on re-runs
-- **Structured Logging**: JSON-formatted logs for observability
+  - Last-write-wins strategy for overlapping records across sources
+  - Safe to run multiple times without data corruption
+- **Structured Logging**: JSON-formatted logs with detailed error information
+  - Includes source URL, error type, error message, and timestamp for all errors
 - **Containerized Deployment**: Docker support for Supabase deployment
 
 ## Prerequisites
@@ -54,13 +62,15 @@ psql -U postgres -d meeting_summaries -f scripts/setup_db.sql
 ### Basic Usage
 
 ```bash
-# Ingest from default URLs
+# Ingest from default URLs (includes 2022, 2023, 2024, 2025 historic and current data)
 python -m src.cli.ingest
 
-# Specify custom URLs
+# Specify custom URLs (processes multiple sources sequentially)
 python -m src.cli.ingest \
   https://raw.githubusercontent.com/.../2025/meeting-summaries-array.json \
-  https://raw.githubusercontent.com/.../2024/meeting-summaries-array.json
+  https://raw.githubusercontent.com/.../2024/meeting-summaries-array.json \
+  https://raw.githubusercontent.com/.../2023/meeting-summaries-array.json \
+  https://raw.githubusercontent.com/.../2022/meeting-summaries-array.json
 
 # Dry run (validate without inserting)
 python -m src.cli.ingest --dry-run
@@ -68,6 +78,17 @@ python -m src.cli.ingest --dry-run
 # Verbose logging
 python -m src.cli.ingest --verbose
 ```
+
+### Historic Data Support
+
+The pipeline supports ingestion of historic meeting summary data from multiple years:
+
+- **Default Sources**: The CLI includes default URLs for 2022, 2023, 2024, and 2025 data
+- **Sequential Processing**: Sources are processed sequentially to maintain transaction integrity
+- **Error Handling**: If one source fails to download or validate, processing continues with remaining sources
+- **Structure Validation**: Each historic source is validated for structure compatibility before processing
+- **Idempotent**: Running ingestion multiple times updates existing records without creating duplicates
+- **Referential Integrity**: All workgroups are processed first, then meetings, ensuring proper relationships
 
 ### Command Options
 

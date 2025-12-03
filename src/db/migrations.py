@@ -126,3 +126,6 @@ async def verify_schema(database_url: Optional[str] = None) -> bool:
         return True
     finally:
         await conn.close()
+
+
+

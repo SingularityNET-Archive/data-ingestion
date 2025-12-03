@@ -13,3 +13,6 @@ services:
     restart: "no"
     # Uncomment to override default command
     # command: python -m src.cli.ingest --dry-run
+
+
+

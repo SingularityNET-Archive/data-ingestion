@@ -69,3 +69,6 @@ logs/
 # Project specific
 specs/**/checklists/
 *.pyc
+
+
+

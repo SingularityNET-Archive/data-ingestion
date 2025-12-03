@@ -181,7 +181,11 @@ async def _run_ingestion(
                     if not validator.validate_structure(json_data, url):
                         logger.error(
                             f"Structure validation failed for {url}",
-                            extra={"source_url": url},
+                            extra={
+                                "source_url": url,
+                                "error_type": "validation_error",
+                                "event": "structure_validation_failed",
+                            },
                         )
                         total_stats["sources_failed"] += 1
                         continue
@@ -213,9 +217,16 @@ async def _run_ingestion(
                     total_stats["sources_processed"] += 1
 
             except Exception as e:
+                # Determine error type
+                error_type = type(e).__name__
                 logger.error(
                     f"Failed to process source {url}: {e}",
-                    extra={"source_url": url, "error": str(e)},
+                    extra={
+                        "source_url": url,
+                        "error": str(e),
+                        "error_type": error_type,
+                        "event": "source_processing_failed",
+                    },
                 )
                 total_stats["sources_failed"] += 1
                 continue
@@ -264,3 +275,6 @@ if __name__ == "__main__":
         LOG_FORMAT: Log format (json or text, default: json)
     """
     ingest()
+
+
+

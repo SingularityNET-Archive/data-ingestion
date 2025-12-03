@@ -391,3 +391,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 COMMENT ON FUNCTION upsert_discussion_point IS 'UPSERT discussion point record with last-write-wins strategy';
+
+
+

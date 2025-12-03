@@ -182,3 +182,6 @@ class MeetingSummaryArray(BaseModel):
     def from_json_array(cls, data: List[Dict[str, Any]]) -> "MeetingSummaryArray":
         """Parse array of meeting summary objects."""
         return cls(meetings=[MeetingSummary(**item) for item in data])
+
+
+

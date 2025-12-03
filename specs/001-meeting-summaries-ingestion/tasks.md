@@ -191,6 +191,31 @@ description: "Task list for Meeting Summaries Data Ingestion Pipeline implementa
 
 ---
 
+## Phase 10: Historic Data Ingestion Verification & Enhancement
+
+**Purpose**: Ensure all historic data requirements from spec 002 are fully implemented and verified
+
+**Input**: Feature specification from `/specs/002-include-historic-data/spec.md`
+
+- [X] T065 [US2-HIST] Verify historic data URLs (2022, 2023, 2024) are included in DEFAULT_URLS in src/cli/ingest.py
+- [X] T066 [US2-HIST] Verify sequential processing of multiple JSON sources maintains transaction integrity in src/cli/ingest.py
+- [X] T067 [US2-HIST] Verify structure validation occurs before processing any records from historic sources in src/services/json_validator.py
+- [X] T068 [US2-HIST] Verify system continues processing remaining valid sources when one historic source fails in src/cli/ingest.py
+- [X] T069 [US2-HIST] Verify detailed error logging for failed JSON sources includes source URL, error type, error message, timestamp in src/cli/ingest.py
+- [X] T070 [US2-HIST] Verify UPSERT behavior applies correctly for historic data with last-write-wins strategy in src/services/ingestion_service.py
+- [X] T071 [US2-HIST] Verify all unique workgroups from historic sources are processed first before meetings in src/services/ingestion_service.py
+- [X] T072 [US2-HIST] Verify historic data processing maintains referential integrity (workgroups exist before meetings, meetings exist before agenda items) in src/services/ingestion_service.py
+- [X] T073 [US2-HIST] Verify historic JSON structure validation checks required top-level fields (workgroup, workgroup_id, meetingInfo, agendaItems, tags, type) in src/services/json_validator.py
+- [X] T074 [US2-HIST] Verify missing or null optional fields in historic JSON are handled without errors in src/services/json_validator.py
+- [X] T075 [US2-HIST] Verify additional fields in historic JSON not in base model are accepted (schema flexibility) in src/services/json_validator.py
+- [X] T076 [US2-HIST] Verify idempotent behavior works correctly when running historic data ingestion multiple times in src/services/ingestion_service.py
+- [X] T077 [US2-HIST] Test historic data ingestion end-to-end with all historic sources (2022, 2023, 2024) and verify all records are processed correctly
+- [X] T078 [US2-HIST] Update documentation to explicitly mention historic data support and multi-source processing in README.md
+
+**Checkpoint**: At this point, Phase 10 should be complete - historic data ingestion is fully verified and all spec 002 requirements are met
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -302,7 +327,7 @@ With multiple developers:
 
 ## Task Summary
 
-- **Total Tasks**: 64
+- **Total Tasks**: 78
 - **Setup Tasks**: 5 (Phase 1)
 - **Foundational Tasks**: 4 (Phase 2)
 - **User Story 1 Tasks**: 9 (Phase 3)
@@ -312,6 +337,7 @@ With multiple developers:
 - **User Story 5 Tasks**: 5 (Phase 7)
 - **User Story 6 Tasks**: 6 (Phase 8)
 - **Polish Tasks**: 10 (Phase 9)
+- **Historic Data Tasks**: 14 (Phase 10)
 
 - **Parallel Opportunities Identified**: 
   - Setup tasks (T003-T005)

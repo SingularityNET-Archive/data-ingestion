@@ -92,3 +92,6 @@ echo "1. Set DATABASE_URL environment variable:"
 echo "   export DATABASE_URL=postgresql://$DB_USER@$DB_HOST:$DB_PORT/$DB_NAME"
 echo "2. Run ingestion:"
 echo "   python -m src.cli.ingest"
+
+
+
