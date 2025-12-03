@@ -148,14 +148,49 @@ mypy src/
 
 ## Deployment
 
-See `specs/001-meeting-summaries-ingestion/quickstart.md` for containerized deployment instructions.
+### Production Deployment
+
+For production deployment to Supabase or other containerized environments:
+
+1. **Build Docker Image**
+   ```bash
+   docker build -t data-ingestion:latest -f scripts/docker/Dockerfile .
+   ```
+
+2. **Configure Environment Variables**
+   - Set `DATABASE_URL` with your production database connection string
+   - Set `LOG_LEVEL` (default: `INFO`)
+   - Set `LOG_FORMAT` (default: `json`)
+
+3. **Run Container**
+   ```bash
+   docker run --env-file .env data-ingestion:latest
+   ```
+
+4. **Verify Deployment**
+   - Check logs for successful ingestion
+   - Verify record counts in database
+   - Test idempotent re-runs
+
+See `PRODUCTION_CHECKLIST.md` for detailed production deployment checklist.
+
+### Local Development
+
+See `specs/001-meeting-summaries-ingestion/quickstart.md` for local development setup instructions.
 
 ## Documentation
 
+### Core Documentation
 - **Specification**: `specs/001-meeting-summaries-ingestion/spec.md`
 - **Implementation Plan**: `specs/001-meeting-summaries-ingestion/plan.md`
 - **Data Model**: `specs/001-meeting-summaries-ingestion/data-model.md`
 - **Quickstart Guide**: `specs/001-meeting-summaries-ingestion/quickstart.md`
+
+### Operations Documentation
+- **Production Checklist**: `PRODUCTION_CHECKLIST.md` - Environment configuration and pre-deployment verification
+- **Troubleshooting Guide**: `TROUBLESHOOTING.md` - Common issues and solutions
+- **Operations Runbook**: `OPERATIONS_RUNBOOK.md` - Step-by-step operational procedures
+- **Changelog**: `CHANGELOG.md` - Version history and release notes
 
 ## License
 
