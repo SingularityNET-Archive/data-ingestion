@@ -26,11 +26,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
+      - name: Verify configuration
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "ERROR: SUPABASE_DATABASE_URL secret is not set"
+            echo "Please configure it in: Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          echo "✓ DATABASE_URL is configured"
+          echo "✓ Starting ingestion..."
+      
       - name: Run ingestion
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
           LOG_FORMAT: json
           LOG_LEVEL: INFO
+          PYTHONPATH: ${{ github.workspace }}
         shell: bash
         run: |
           set -o pipefail
