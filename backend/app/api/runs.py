@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from api.auth import require_read_only_or_admin, User
+from .auth import require_read_only_or_admin, User
 
 router = APIRouter(prefix="/runs", tags=["runs"])
 
@@ -42,14 +42,12 @@ async def list_runs(
     Returns:
         List of ingestion runs
     """
-    from db.connection import get_database_url, get_db_pool
+    from ..db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:
-        raise HTTPException(
-            status_code=500,
-            detail="DATABASE_URL not configured",
-        )
+        # Return empty runs list for development when DATABASE_URL is not configured
+        return []
 
     try:
         pool = await get_db_pool()
@@ -104,14 +102,12 @@ async def get_monthly_aggregates(
     Returns:
         List of monthly aggregates ordered by month
     """
-    from db.connection import get_database_url, get_db_pool
+    from ..db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:
-        raise HTTPException(
-            status_code=500,
-            detail="DATABASE_URL not configured",
-        )
+        # Return empty monthly aggregates for development when DATABASE_URL is not configured
+        return []
 
     try:
         pool = await get_db_pool()

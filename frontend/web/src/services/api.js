@@ -1,10 +1,11 @@
 /** API service for communicating with the backend dashboard API. */
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// Use relative URLs to leverage Vite's proxy, or absolute URL if VITE_API_BASE_URL is set
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE_URL,  // Empty string means relative URLs, which will use Vite proxy
   headers: {
     'Content-Type': 'application/json',
   },

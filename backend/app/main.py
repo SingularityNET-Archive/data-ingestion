@@ -3,9 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, Response, JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables from .env file in project root
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Import API routers
-from api import kpis, alerts, meetings, exports, runs
+from .api import kpis, alerts, meetings, exports, runs
 
 app = FastAPI(title="Ingestion Dashboard API")
 
@@ -46,7 +52,7 @@ async def favicon():
 async def startup_event():
     # Initialize DB pool on startup so endpoints can use it.
     try:
-        from db.connection import init_db_pool
+        from .db.connection import init_db_pool
 
         await init_db_pool()
     except Exception as e:
@@ -63,7 +69,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     try:
-        from db.connection import close_db_pool
+        from .db.connection import close_db_pool
 
         await close_db_pool()
     except Exception:

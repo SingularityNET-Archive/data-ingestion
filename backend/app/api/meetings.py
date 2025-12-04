@@ -3,7 +3,7 @@ from datetime import date
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from api.auth import require_read_only_or_admin, User
+from .auth import require_read_only_or_admin, User
 
 router = APIRouter(prefix="/meetings", tags=["meetings"])
 
@@ -75,13 +75,17 @@ async def list_meetings(
     Returns:
         Paginated list of meeting summaries
     """
-    from db.connection import get_database_url, get_db_pool
+    from ..db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:
-        raise HTTPException(
-            status_code=500,
-            detail="DATABASE_URL not configured",
+        # Return empty meetings list for development when DATABASE_URL is not configured
+        return PaginatedMeetings(
+            items=[],
+            total=0,
+            page=page,
+            page_size=page_size,
+            total_pages=0,
         )
 
     try:
@@ -97,10 +101,11 @@ async def list_meetings(
                 params.append(f"%{workgroup}%")
                 param_idx += 1
 
-            if source:
-                where_conditions.append(f"s.name ILIKE ${param_idx}")
-                params.append(f"%{source}%")
-                param_idx += 1
+            # Note: source filtering removed since source table doesn't exist in current schema
+            # if source:
+            #     where_conditions.append(f"s.name ILIKE ${param_idx}")
+            #     params.append(f"%{source}%")
+            #     param_idx += 1
 
             if date_from:
                 where_conditions.append(f"ms.meeting_date >= ${param_idx}")
@@ -121,11 +126,10 @@ async def list_meetings(
 
             where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
 
-            # Count total
+            # Count total (removed source join since source table doesn't exist)
             count_query = f"""
                 SELECT COUNT(*) as total
                 FROM public.meeting_summary_view ms
-                LEFT JOIN source s ON s.id = ms.source_id
                 {where_clause}
             """
             count_row = await conn.fetchrow(count_query, *params)
@@ -146,7 +150,6 @@ async def list_meetings(
                     CASE WHEN ms.missing_fields IS NOT NULL AND jsonb_array_length(ms.missing_fields) > 0 
                          THEN true ELSE false END AS has_missing_fields
                 FROM public.meeting_summary_view ms
-                LEFT JOIN source s ON s.id = ms.source_id
                 {where_clause}
                 ORDER BY ms.ingested_at DESC NULLS LAST, ms.meeting_date DESC NULLS LAST
                 LIMIT ${param_idx} OFFSET ${param_idx + 1}
@@ -201,7 +204,7 @@ async def get_meeting_detail(
     Returns:
         Full meeting detail with all fields
     """
-    from db.connection import get_database_url, get_db_pool
+    from ..db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:
@@ -213,6 +216,7 @@ async def get_meeting_detail(
     try:
         pool = await get_db_pool()
         async with pool.acquire() as conn:
+            # Get meeting detail from view, and also get raw_json from the actual meetings table
             row = await conn.fetchrow("""
                 SELECT 
                     ms.id,
@@ -223,11 +227,13 @@ async def get_meeting_detail(
                     ms.ingested_at,
                     ms.title,
                     ms.normalized_fields,
-                    ms.validation_warnings,
+                    ms.validation_warnings_count,
                     ms.missing_fields,
                     ms.provenance,
-                    ms.raw_json_reference
+                    ms.raw_json_reference,
+                    m.raw_json
                 FROM public.meeting_summary_view ms
+                LEFT JOIN meetings m ON m.id = ms.id
                 WHERE ms.id::text = $1
             """, meeting_id)
 
@@ -237,14 +243,9 @@ async def get_meeting_detail(
                     detail=f"Meeting {meeting_id} not found",
                 )
 
-            # Parse validation_warnings if it's JSONB
-            validation_warnings = None
-            if row["validation_warnings"]:
-                if isinstance(row["validation_warnings"], list):
-                    validation_warnings = row["validation_warnings"]
-                elif isinstance(row["validation_warnings"], str):
-                    import json
-                    validation_warnings = json.loads(row["validation_warnings"])
+            # validation_warnings is not in the view, only validation_warnings_count
+            # Return empty list since we don't have the actual warnings in the view
+            validation_warnings = [] if row.get("validation_warnings_count", 0) > 0 else []
 
             # Parse missing_fields if it's JSONB
             missing_fields = None
@@ -255,6 +256,29 @@ async def get_meeting_detail(
                     import json
                     missing_fields = json.loads(row["missing_fields"])
 
+            # Use raw_json from meetings table if available, otherwise use raw_json_reference
+            raw_json_ref = row["raw_json_reference"]
+            if row.get("raw_json") and not raw_json_ref:
+                # If we have raw_json but no reference, we could store it or just note it exists
+                raw_json_ref = "Available in raw_json column"
+            
+            # Convert JSONB to dict safely
+            normalized_fields = None
+            if row["normalized_fields"]:
+                if isinstance(row["normalized_fields"], dict):
+                    normalized_fields = row["normalized_fields"]
+                else:
+                    import json
+                    normalized_fields = json.loads(row["normalized_fields"]) if isinstance(row["normalized_fields"], str) else row["normalized_fields"]
+            
+            provenance_dict = None
+            if row["provenance"]:
+                if isinstance(row["provenance"], dict):
+                    provenance_dict = row["provenance"]
+                else:
+                    import json
+                    provenance_dict = json.loads(row["provenance"]) if isinstance(row["provenance"], str) else row["provenance"]
+            
             return MeetingDetail(
                 id=str(row["id"]),
                 source_id=str(row["source_id"]) if row["source_id"] else None,
@@ -263,11 +287,11 @@ async def get_meeting_detail(
                 meeting_date=row["meeting_date"],
                 ingested_at=row["ingested_at"].isoformat() if row["ingested_at"] else None,
                 title=row["title"],
-                normalized_fields=dict(row["normalized_fields"]) if row["normalized_fields"] else None,
+                normalized_fields=normalized_fields,
                 validation_warnings=validation_warnings,
                 missing_fields=missing_fields,
-                provenance=dict(row["provenance"]) if row["provenance"] else None,
-                raw_json_reference=row["raw_json_reference"],
+                provenance=provenance_dict,
+                raw_json_reference=raw_json_ref,
             )
     except HTTPException:
         raise

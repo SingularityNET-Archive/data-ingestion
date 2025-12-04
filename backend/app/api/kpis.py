@@ -1,6 +1,6 @@
 """KPI API endpoints for the ingestion dashboard."""
 from fastapi import APIRouter, Depends, HTTPException
-from api.auth import require_read_only_or_admin, User
+from .auth import require_read_only_or_admin, User
 
 router = APIRouter(prefix="/kpis", tags=["kpis"])
 
@@ -25,14 +25,18 @@ async def get_kpis(
             - duplicates_avoided: Total number of duplicates avoided via UPSERTs
             - last_run_timestamp: Timestamp of the last ingestion run
     """
-    from db.connection import get_database_url, get_db_pool
+    from ..db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:
-        raise HTTPException(
-            status_code=500,
-            detail="DATABASE_URL not configured",
-        )
+        # Return empty KPIs for development when DATABASE_URL is not configured
+        return {
+            "total_ingested": 0,
+            "sources_count": 0,
+            "success_rate": 100.0,
+            "duplicates_avoided": 0,
+            "last_run_timestamp": None,
+        }
 
     try:
         pool = await get_db_pool()

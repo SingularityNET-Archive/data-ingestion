@@ -24,7 +24,13 @@ async def init_db_pool(min_size: int = 1, max_size: int = 5):
             raise RuntimeError("DATABASE_URL not configured")
         import asyncpg
 
-        _pool = await asyncpg.create_pool(dsn=DATABASE_URL, min_size=min_size, max_size=max_size)
+        # Disable statement cache for pgbouncer compatibility
+        _pool = await asyncpg.create_pool(
+            dsn=DATABASE_URL, 
+            min_size=min_size, 
+            max_size=max_size,
+            statement_cache_size=0  # Required for pgbouncer compatibility
+        )
     return _pool
 
 

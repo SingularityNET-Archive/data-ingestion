@@ -3,7 +3,7 @@ from typing import Optional, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from fastapi.responses import Response
 from pydantic import BaseModel
-from api.auth import require_read_only_or_admin, User
+from .auth import require_read_only_or_admin, User
 import csv
 import json
 import io
@@ -38,7 +38,7 @@ async def export_meetings(
     Returns:
         CSV or JSON file download, or job ID for async export
     """
-    from db.connection import get_database_url, get_db_pool
+    from ..db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:

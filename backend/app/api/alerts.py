@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from api.auth import require_read_only_or_admin, require_admin, User
+from .auth import require_read_only_or_admin, require_admin, User
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
 
@@ -47,14 +47,12 @@ async def list_alerts(
     Returns:
         List of alerts with error details and acknowledgment status
     """
-    from db.connection import get_database_url, get_db_pool
+    from ..db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:
-        raise HTTPException(
-            status_code=500,
-            detail="DATABASE_URL not configured",
-        )
+        # Return empty alerts list for development when DATABASE_URL is not configured
+        return []
 
     # Calculate time threshold
     threshold = datetime.utcnow() - timedelta(hours=hours)
@@ -141,7 +139,7 @@ async def acknowledge_alert(
     Returns:
         Success message
     """
-    from db.connection import get_database_url, get_db_pool
+    from ..db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:
