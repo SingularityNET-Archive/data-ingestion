@@ -1,7 +1,7 @@
 ```markdown
 # Feature Specification: Ingestion Dashboard
 
-**Feature Branch**: `001-ingestion-dashboard`  
+**Feature Branch**: `003-ingestion-dashboard`  
 **Created**: 2025-12-04  
 **Status**: Draft  
 **Input**: User description: "Build a web-dashboard for the SingularityNET-Archive data-ingestion pipeline that connects to the underlying PostgreSQL (or Supabase) database and provides interactive, real-time (or near real-time) views of ingestion status, data health, and metadata. The dashboard should display high-level metrics (e.g. total number of meeting summaries ingested, number of sources processed, ingestion success vs failure rate, number of duplicates avoided via UPSERTs, last ingestion run timestamp, error counts), plus more detailed views (e.g. list of ingested meetings, with workgroup, date, and any validation warnings or missing fields, ability to filter by year/source/workgroup, and drill down to raw JSON or normalized records). It should also visualise trends over time (e.g. ingestion volume per month, failure rate over time) and surface alerts for recent failures or schema-validation errors. Logging data (structured error logs with source URL, error type/message, timestamp) should be accessible for debugging. The UI should allow both summary (KPIs) and detailed investigatory work, with export functionality (CSV/JSON) for downstream analysis."
