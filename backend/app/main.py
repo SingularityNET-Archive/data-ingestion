@@ -18,17 +18,31 @@ async def healthz():
     return {"status": "ok"}
 
 
-# Simple example KPI endpoint for scaffold
+# KPI endpoint that reads from the materialized view `mv_ingestion_kpis`.
 @app.get("/api/kpis")
-async def get_kpis():
-    # Placeholder implementation — real implementation will query materialised views
-    return {
-        "total_ingested": 0,
-        "sources_count": 0,
-        "success_rate": 100.0,
-        "duplicates_avoided": 0,
-        "last_run_timestamp": None,
-    }
+def get_kpis():
+    # Synchronous DB access using psycopg (psycopg3). This is a simple
+    # implementation for the scaffold; in production consider async DB
+    # access or connection pooling.
+    from db.connection import get_database_url
+
+    database_url = get_database_url()
+    if not database_url:
+        return {"error": "DATABASE_URL not configured"}
+
+    try:
+        import psycopg
+
+        with psycopg.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM public.mv_ingestion_kpis LIMIT 1;")
+                row = cur.fetchone()
+                if row is None:
+                    return {}
+                cols = [desc.name for desc in cur.description]
+                return dict(zip(cols, row))
+    except Exception as e:
+        return {"error": str(e)}
 
 
 if __name__ == "__main__":
