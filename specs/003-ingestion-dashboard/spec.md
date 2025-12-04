@@ -80,7 +80,9 @@ As a **Project Manager**, I want to view ingestion volume and failure rate trend
 - **FR-007**: Dashboard MUST provide access to structured error logs (fields: `timestamp`, `source_url`, `error_type`, `message`, `ingestion_run_id`) with filtering by time range, error type, and source.
 - **FR-008**: Dashboard MUST support export of list and filtered views to CSV and JSON with fields matching the UI table and detail view.
 - **FR-009**: Dashboard MUST show provenance metadata for each record where available (original source URL, downloader id, and ingestion run id).
-- **FR-010**: Dashboard MUST include role-based view constraints (read vs admin) — [NEEDS CLARIFICATION: define required user roles and permissions].
+- **FR-010**: Dashboard MUST include role-based view constraints with two roles defined:
+  - **Read-only**: can view Operational Overview KPIs, list and detail views, access and filter structured error logs, download/export CSV/JSON, and view trend visualisations. Read-only users cannot acknowledge alerts or access admin-only links.
+  - **Admin**: all Read-only permissions plus the ability to acknowledge/clear alerts, access ingestion-run internal links for debugging, and perform dashboard administrative actions (e.g., trigger manual re-checks or request exports on behalf of users).
 
 ### Key Entities *(data model level, non-implementation)*
 
@@ -93,8 +95,8 @@ As a **Project Manager**, I want to view ingestion volume and failure rate trend
 ## Assumptions
 
 - The dashboard reads data directly from the existing PostgreSQL (or Supabase) schema used by the ingestion pipeline.
-- "Near real-time" is assumed to mean data visible within 5 minutes of ingestion unless otherwise specified. [NEEDS CLARIFICATION: acceptable data latency SLA?]
-- Authentication and authorization will be provided by the platform/environment; the spec assumes a mechanism for role-based access control exists (see FR-010).
+- "Near real-time" is assumed to mean data visible within 5 minutes of ingestion unless otherwise specified.
+- Authentication and authorization will be provided by the platform/environment; the spec assumes a mechanism for role-based access control exists. Two default roles are defined: `read-only` and `admin` (see FR-010).
 - Exports are snapshot exports; very large exports may be delivered asynchronously (accepted-but-processed model).
 
 ## Success Criteria *(mandatory & measurable)*
@@ -121,6 +123,13 @@ As a **Project Manager**, I want to view ingestion volume and failure rate trend
 
 - Prefer adding read-only database views or materialised summaries if needed for performant KPIs (decided during planning).
 - Consider rate limits on exports and background jobs for large dataset exports.
+
+## Clarifications
+
+### Session 2025-12-04
+
+- Q: Q1 - Access Control → A: Option A - Read-only + Admin (Read-only users can view KPIs, lists, error logs, and export; Admins can also acknowledge alerts, view internal links, and perform admin-only actions). Applied to `FR-010` and Assumptions.
+
 
 ## Questions / Clarifications (max 3)
 
