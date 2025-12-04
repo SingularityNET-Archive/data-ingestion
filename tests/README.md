@@ -25,10 +25,33 @@ tests/
 
 ## Running Tests
 
+### Prerequisites
+
+Before running tests, ensure:
+1. Virtual environment is activated: `source venv/bin/activate` (or `venv\Scripts\activate` on Windows)
+2. Dependencies are installed: `pip install -r requirements.txt`
+3. Test database is available (for integration tests) OR use mocks
+4. Python path includes project root (usually automatic)
+
 ### Run All Tests
 
 ```bash
 pytest
+```
+
+**Expected Output Format**:
+```
+============================= test session starts ==============================
+platform darwin -- Python 3.9.0, pytest-7.4.0, pluggy-1.3.0
+collected 55 items
+
+tests/unit/test_json_downloader.py ..........                          [ 18%]
+tests/unit/test_json_validator.py ...........                          [ 38%]
+tests/integration/test_ingestion_service.py ........                   [ 55%]
+tests/contract/test_json_structure.py ............                    [ 77%]
+...                                                                     [100%]
+
+======================== 55 passed in 48.23s =========================
 ```
 
 ### Run Specific Test Categories
@@ -57,37 +80,136 @@ pytest tests/integration/test_ingestion_service.py
 pytest -v
 ```
 
+**Example Verbose Output**:
+```
+tests/unit/test_json_downloader.py::test_download_json_success PASSED
+tests/unit/test_json_downloader.py::test_download_json_timeout PASSED
+tests/unit/test_json_validator.py::test_validate_structure_compatible PASSED
+```
+
 ### Run with Coverage
 
 ```bash
 pytest --cov=src --cov-report=html
 ```
 
+This generates an HTML coverage report in `htmlcov/index.html` showing which code is covered by tests.
+
+### Run Tests Matching a Pattern
+
+```bash
+# Run tests matching "json" in name
+pytest -k json
+
+# Run tests matching "error" in name
+pytest -k error
+```
+
 ## Test Categories
 
 ### Unit Tests
 
-Unit tests verify individual components in isolation:
-- **JSON Downloader**: HTTP requests, error handling, timeout handling
-- **JSON Validator**: Structure validation, record validation, error messages
-- **Validators**: UUID validation, date parsing, circular reference detection
-- **Logger**: JSON/text formatting, log levels, output streams
-- **Models**: Pydantic validation, field extraction, serialization
+**Purpose**: Verify individual components work correctly in isolation without external dependencies (database, network).
+
+**What Each Test Category Verifies**:
+- **JSON Downloader**: HTTP requests, error handling, timeout handling, retry logic
+- **JSON Validator**: Structure validation, record validation, error messages, schema compatibility
+- **Validators**: UUID validation, date parsing, circular reference detection, data type validation
+- **Logger**: JSON/text formatting, log levels, output streams, structured logging
+- **Models**: Pydantic validation, field extraction, serialization, data transformation
+
+**Example Successful Output**:
+```
+tests/unit/test_json_downloader.py::test_download_json_success PASSED
+tests/unit/test_json_downloader.py::test_download_json_timeout PASSED
+tests/unit/test_json_validator.py::test_validate_structure_compatible PASSED
+tests/unit/test_validators.py::test_validate_uuid_valid PASSED
+tests/unit/test_models.py::test_meeting_model_serialization PASSED
+
+======================== 25 passed in 2.34s ========================
+```
+
+**Expected Outcomes**:
+- All validation functions return correct results for valid and invalid inputs
+- Models serialize/deserialize correctly with all field types
+- Error handling works as expected (raises appropriate exceptions)
+- Logging produces correct format and includes required fields
+- HTTP client handles timeouts and errors gracefully
+
+**Common Failure Scenarios**:
+- **Import errors**: Missing dependencies or incorrect Python path
+- **Validation failures**: Test data doesn't match expected schema
+- **Type errors**: Pydantic model validation issues
+- **Mock setup errors**: Incorrect mock configuration
 
 ### Integration Tests
 
-Integration tests verify component interactions:
-- **Ingestion Service**: Full meeting processing flow, workgroup extraction, atomic transactions
-- **Schema Manager**: Workgroup extraction, UPSERT operations
-- **End-to-End**: Complete pipeline from download to database insertion
-- **Error Handling**: Network failures, database errors, invalid data handling
-- **Performance**: Throughput, response times, 10-minute goal verification
+**Purpose**: Verify component interactions work correctly together, including database operations and end-to-end workflows.
+
+**What Each Test Category Verifies**:
+- **Ingestion Service**: Full meeting processing flow, workgroup extraction, atomic transactions, nested entity processing
+- **Schema Manager**: Workgroup extraction, UPSERT operations, duplicate handling
+- **End-to-End**: Complete pipeline from download to database insertion, multiple sources, error recovery
+- **Error Handling**: Network failures, database errors, invalid data handling, transaction rollback
+- **Performance**: Throughput, response times, 10-minute goal verification, resource usage
+
+**Example Successful Output**:
+```
+tests/integration/test_ingestion_service.py::test_ingest_single_meeting PASSED
+tests/integration/test_ingestion_service.py::test_ingest_multiple_meetings PASSED
+tests/integration/test_e2e_ingestion.py::test_full_pipeline PASSED
+tests/integration/test_error_handling.py::test_network_failure_recovery PASSED
+tests/integration/test_performance.py::test_ingestion_within_time_limit PASSED
+
+======================== 18 passed in 45.67s ========================
+```
+
+**Expected Outcomes**:
+- Complete ingestion workflows process all records successfully
+- Database transactions are atomic (all-or-nothing)
+- Workgroups are processed before meetings (referential integrity)
+- Error recovery continues processing remaining sources after failures
+- Performance meets 10-minute target for 677 records
+- UPSERT operations prevent duplicates on re-runs
+
+**Common Failure Scenarios**:
+- **Database connection errors**: Test database not available or incorrect connection string
+- **Transaction failures**: Database constraints violated or connection lost
+- **Performance timeouts**: Tests exceed time limits due to slow database or network
+- **Referential integrity errors**: Workgroups not created before meetings
+- **Mock configuration errors**: Database mocks not properly configured
 
 ### Contract Tests
 
-Contract tests ensure API/schema compliance:
-- **JSON Structure**: Required fields, nested structures, schema flexibility
-- **Historic Data**: Compatibility with 2022-2024 data formats
+**Purpose**: Ensure API/schema compliance and data structure compatibility across different data sources.
+
+**What Each Test Category Verifies**:
+- **JSON Structure**: Required fields present, nested structures valid, schema flexibility (additional fields allowed)
+- **Historic Data**: Compatibility with 2022-2024 data formats, missing optional fields handled gracefully
+- **Schema Evolution**: Backward compatibility with older data formats
+
+**Example Successful Output**:
+```
+tests/contract/test_json_structure.py::test_required_fields_present PASSED
+tests/contract/test_json_structure.py::test_nested_structures_valid PASSED
+tests/contract/test_json_structure.py::test_historic_data_compatibility PASSED
+tests/contract/test_json_structure.py::test_schema_flexibility PASSED
+
+======================== 12 passed in 1.23s ========================
+```
+
+**Expected Outcomes**:
+- All required fields are present and correctly typed
+- Nested structures (agenda items, action items, etc.) are valid
+- Historic data from 2022-2024 is compatible with current schema
+- Additional fields beyond schema are accepted (schema flexibility)
+- Missing optional fields don't cause failures
+
+**Common Failure Scenarios**:
+- **Missing required fields**: JSON structure doesn't match expected schema
+- **Type mismatches**: Field types don't match expected types (string vs number, etc.)
+- **Nested structure errors**: Invalid structure in nested collections
+- **Historic data incompatibility**: Older data formats not handled correctly
 
 ## Test Fixtures
 

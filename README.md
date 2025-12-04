@@ -108,21 +108,47 @@ The pipeline supports ingestion of historic meeting summary data from multiple y
 ## Project Structure
 
 ```
-src/
-├── models/          # Database models and Pydantic schemas
-├── services/        # Business logic and data processing
-├── db/              # Database connection and utilities
-├── cli/             # Command-line interface
-└── lib/             # Shared utilities (logging, validation)
-
-tests/
-├── contract/        # Contract tests
-├── integration/     # Integration tests
-└── unit/            # Unit tests
-
-scripts/
-├── setup_db.sql     # Database schema DDL
-└── .github/         # GitHub Actions workflow configuration
+.
+├── README.md                    # Project overview and quick start
+├── CHANGELOG.md                 # Version history and release notes
+├── pyproject.toml               # Python project configuration
+├── requirements.txt             # Python dependencies
+├── .gitignore                  # Git ignore patterns
+│
+├── src/                         # Application source code
+│   ├── models/                  # Database models and Pydantic schemas
+│   ├── services/                # Business logic and data processing
+│   ├── db/                      # Database connection and utilities
+│   ├── cli/                     # Command-line interface
+│   └── lib/                     # Shared utilities (logging, validation)
+│
+├── tests/                       # Test suite
+│   ├── contract/                # Contract tests (schema validation)
+│   ├── integration/             # Integration tests (end-to-end)
+│   └── unit/                    # Unit tests (component isolation)
+│
+├── scripts/                     # Utility scripts
+│   ├── setup_db.sql             # Database schema DDL
+│   ├── check_duplicates.py      # Duplicate detection utility
+│   ├── find_missing_meetings.py # Missing data analysis
+│   ├── run_migration.py         # Database migration runner
+│   └── verify_schema.py         # Schema validation utility
+│
+├── docs/                        # Project documentation
+│   ├── README.md                # Documentation index
+│   ├── operations/              # Operational guides
+│   │   ├── runbook.md           # Operations runbook
+│   │   ├── production-checklist.md
+│   │   ├── troubleshooting.md
+│   │   └── duplicate-diagnosis.md
+│   ├── deployment/              # Deployment guides
+│   │   ├── supabase-setup.md
+│   │   ├── supabase-quickstart.md
+│   │   └── deployment-options.md
+│   └── archive/                 # Historical/archived files
+│
+└── specs/                       # Feature specifications and plans
+    └── [feature-specs]/         # Individual feature specifications
 ```
 
 ## Development
@@ -180,18 +206,18 @@ For traditional server deployment:
 #### Option 3: Serverless Functions
 
 Deploy as serverless function:
-- **Google Cloud Functions**: See `SUPABASE_DEPLOYMENT_OPTIONS.md`
-- **AWS Lambda**: See `SUPABASE_DEPLOYMENT_OPTIONS.md`
+- **Google Cloud Functions**: See `docs/deployment/deployment-options.md`
+- **AWS Lambda**: See `docs/deployment/deployment-options.md`
 
 ### Detailed Deployment Guide
 
-- **Supabase Setup Guide**: `SUPABASE_SETUP_GUIDE.md` - Step-by-step instructions for setting up Supabase and GitHub Actions
-- **Quick Start Checklist**: `SUPABASE_QUICK_START.md` - Quick reference checklist for setup
-- **Deployment Options**: `SUPABASE_DEPLOYMENT_OPTIONS.md` - Comprehensive guide for all deployment options
+- **Supabase Setup Guide**: `docs/deployment/supabase-setup.md` - Step-by-step instructions for setting up Supabase and GitHub Actions
+- **Quick Start Checklist**: `docs/deployment/supabase-quickstart.md` - Quick reference checklist for setup
+- **Deployment Options**: `docs/deployment/deployment-options.md` - Comprehensive guide for all deployment options
 
 ### Production Checklist
 
-See `PRODUCTION_CHECKLIST.md` for detailed production deployment checklist.
+See `docs/operations/production-checklist.md` for detailed production deployment checklist.
 
 ### Local Development
 
@@ -206,10 +232,10 @@ See `specs/001-meeting-summaries-ingestion/quickstart.md` for local development 
 - **Quickstart Guide**: `specs/001-meeting-summaries-ingestion/quickstart.md`
 
 ### Operations Documentation
-- **Deployment Options**: `SUPABASE_DEPLOYMENT_OPTIONS.md` - Comprehensive guide for deployment options (GitHub Actions recommended, serverless, etc.)
-- **Production Checklist**: `PRODUCTION_CHECKLIST.md` - Environment configuration and pre-deployment verification
-- **Troubleshooting Guide**: `TROUBLESHOOTING.md` - Common issues and solutions
-- **Operations Runbook**: `OPERATIONS_RUNBOOK.md` - Step-by-step operational procedures
+- **Deployment Options**: `docs/deployment/deployment-options.md` - Comprehensive guide for deployment options (GitHub Actions recommended, serverless, etc.)
+- **Production Checklist**: `docs/operations/production-checklist.md` - Environment configuration and pre-deployment verification
+- **Troubleshooting Guide**: `docs/operations/troubleshooting.md` - Common issues and solutions
+- **Operations Runbook**: `docs/operations/runbook.md` - Step-by-step operational procedures
 - **Changelog**: `CHANGELOG.md` - Version history and release notes
 
 ## License

@@ -4,7 +4,7 @@ This runbook provides step-by-step procedures for operating the meeting summarie
 
 ## Overview
 
-The ingestion pipeline downloads meeting summary JSON data from GitHub URLs, validates structure, and stores it in a PostgreSQL database. The system is designed to be **idempotent** (an operation that produces the same result regardless of how many times it is applied) and can be safely re-run without creating duplicates.
+The ingestion pipeline downloads meeting summary JSON data from GitHub URLs, validates structure, and stores it in a PostgreSQL database. The system is designed to be idempotent and can be safely re-run.
 
 ## Prerequisites
 
