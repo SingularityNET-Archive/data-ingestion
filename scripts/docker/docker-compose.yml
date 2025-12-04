@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  ingestion:
+    build:
+      context: ../..
+      dockerfile: scripts/docker/Dockerfile
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: "no"
+    # Uncomment to override default command
+    # command: python -m src.cli.ingest --dry-run
+
+
+
+
+
+

@@ -1,0 +1,41 @@
+# data-ingestion Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-11-30
+
+## Active Technologies
+
+- Python 3.8+ + FastAPI, asyncpg (or psycopg2), httpx (or requests), pydantic (for validation), python-dotenv (001-meeting-summaries-ingestion)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+```bash
+# Run tests
+pytest
+
+# Format code
+black src/ tests/
+
+# Lint code
+ruff check src/ tests/
+
+# Type checking
+mypy src/
+```
+
+## Code Style
+
+Python 3.8+: Follow standard conventions
+
+## Recent Changes
+
+- 001-meeting-summaries-ingestion: Added Python 3.8+ + FastAPI, asyncpg (or psycopg2), httpx (or requests), pydantic (for validation), python-dotenv
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
