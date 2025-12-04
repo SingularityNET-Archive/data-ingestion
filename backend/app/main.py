@@ -4,6 +4,9 @@ from fastapi.responses import RedirectResponse, Response, JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import os
 
+# Import API routers
+from api import kpis, alerts, meetings, exports, runs
+
 app = FastAPI(title="Ingestion Dashboard API")
 
 app.add_middleware(
@@ -13,6 +16,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register API routers
+app.include_router(kpis.router, prefix="/api")
+app.include_router(alerts.router, prefix="/api")
+app.include_router(meetings.router, prefix="/api")
+app.include_router(exports.router, prefix="/api")
+app.include_router(runs.router, prefix="/api")
 
 
 @app.get("/healthz")
@@ -58,31 +68,6 @@ async def shutdown_event():
         await close_db_pool()
     except Exception:
         pass
-
-
-@app.get("/api/kpis")
-async def get_kpis():
-    """Async KPI endpoint that reads from the materialized view `mv_ingestion_kpis`.
-
-    Returns a single-row mapping of KPI columns to values. The endpoint uses
-    an asyncpg pool for efficient connections.
-    """
-    from db.connection import get_database_url, get_db_pool
-
-    database_url = get_database_url()
-    if not database_url:
-        return {"error": "DATABASE_URL not configured"}
-
-    try:
-        pool = await get_db_pool()
-        async with pool.acquire() as conn:
-            row = await conn.fetchrow("SELECT * FROM public.mv_ingestion_kpis LIMIT 1;")
-            if row is None:
-                return {}
-            # asyncpg Record is mappable to dict
-            return dict(row)
-    except Exception as e:
-        return {"error": str(e)}
 
 
 
