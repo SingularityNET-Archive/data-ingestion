@@ -31,18 +31,19 @@ jobs:
           DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
           LOG_FORMAT: json
           LOG_LEVEL: INFO
+        shell: bash
         run: |
-          python -m src.cli.ingest
+          set -o pipefail
+          python -m src.cli.ingest 2>&1 | tee ingestion.log
       
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ingestion-logs-${{ github.run_id }}
-          path: |
-            ingestion.log
-            *.log
+          path: ingestion.log
           retention-days: 30
+          if-no-files-found: warn
 
 
 
