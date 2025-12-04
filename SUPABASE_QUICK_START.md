@@ -53,3 +53,4 @@ See `SUPABASE_SETUP_GUIDE.md` for detailed step-by-step instructions.
 
 
 
+
