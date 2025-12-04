@@ -6,6 +6,11 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:  # Allow manual triggers from GitHub UI
 
+# Prevent concurrent runs to avoid race conditions and duplicate inserts
+concurrency:
+  group: ingest-meetings
+  cancel-in-progress: false  # Wait for current run to finish instead of canceling
+
 jobs:
   ingest:
     runs-on: ubuntu-latest
