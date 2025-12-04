@@ -18,29 +18,48 @@ async def healthz():
     return {"status": "ok"}
 
 
-# KPI endpoint that reads from the materialized view `mv_ingestion_kpis`.
+@app.on_event("startup")
+async def startup_event():
+    # Initialize DB pool on startup so endpoints can use it.
+    try:
+        from db.connection import init_db_pool
+
+        await init_db_pool()
+    except Exception as e:
+        print(f"Warning: DB pool initialization failed on startup: {e}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    try:
+        from db.connection import close_db_pool
+
+        await close_db_pool()
+    except Exception:
+        pass
+
+
 @app.get("/api/kpis")
-def get_kpis():
-    # Synchronous DB access using psycopg (psycopg3). This is a simple
-    # implementation for the scaffold; in production consider async DB
-    # access or connection pooling.
-    from db.connection import get_database_url
+async def get_kpis():
+    """Async KPI endpoint that reads from the materialized view `mv_ingestion_kpis`.
+
+    Returns a single-row mapping of KPI columns to values. The endpoint uses
+    an asyncpg pool for efficient connections.
+    """
+    from db.connection import get_database_url, get_db_pool
 
     database_url = get_database_url()
     if not database_url:
         return {"error": "DATABASE_URL not configured"}
 
     try:
-        import psycopg
-
-        with psycopg.connect(database_url) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM public.mv_ingestion_kpis LIMIT 1;")
-                row = cur.fetchone()
-                if row is None:
-                    return {}
-                cols = [desc.name for desc in cur.description]
-                return dict(zip(cols, row))
+        pool = await get_db_pool()
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT * FROM public.mv_ingestion_kpis LIMIT 1;")
+            if row is None:
+                return {}
+            # asyncpg Record is mappable to dict
+            return dict(row)
     except Exception as e:
         return {"error": str(e)}
 
