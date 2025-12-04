@@ -23,8 +23,9 @@ jobs:
       
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements.txt
+          pip install -e .
       
       - name: Verify configuration
         env:
@@ -43,10 +44,10 @@ jobs:
           DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
           LOG_FORMAT: json
           LOG_LEVEL: INFO
-          PYTHONPATH: ${{ github.workspace }}
         shell: bash
         run: |
           set -o pipefail
+          export PYTHONPATH="${PYTHONPATH}:${PWD}"
           python -m src.cli.ingest 2>&1 | tee ingestion.log
       
       - name: Upload logs
