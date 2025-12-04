@@ -195,3 +195,4 @@ class TestLogLevel:
         assert LogLevel.CRITICAL == "CRITICAL"
 
 
+
