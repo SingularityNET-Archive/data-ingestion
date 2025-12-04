@@ -90,7 +90,7 @@ SELECT id, COUNT(*) FROM meetings GROUP BY id HAVING COUNT(*) > 1;
 **Solutions:**
 1. Verify database schema is up-to-date (run migrations)
 2. Check referential integrity (workgroups must exist before meetings)
-3. Verify UPSERT functions are working correctly
+3. Verify **UPSERT** functions are working correctly (UPSERT is a database operation that inserts a new record if it doesn't exist, or updates an existing record if it does)
 4. Check for constraint violations in logs
 5. Ensure database has sufficient storage space
 
@@ -111,7 +111,7 @@ psql "$DATABASE_URL" -c "SELECT * FROM pg_stat_statements ORDER BY total_time DE
 ```
 
 **Solutions:**
-1. Verify database indexes are created (especially GIN indexes on JSONB columns)
+1. Verify database indexes are created (especially GIN indexes on **JSONB** columns - JSONB is PostgreSQL's binary JSON format with indexing support)
 2. Check database connection pool settings
 3. Monitor database resource usage (CPU, memory, disk I/O)
 4. Consider batch processing for very large datasets

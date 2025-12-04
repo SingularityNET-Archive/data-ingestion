@@ -108,6 +108,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Repository Organization**: Comprehensive repository reorganization for improved clarity and maintainability
+  - **Documentation Structure**: Consolidated all documentation into `docs/` directory with logical subdirectories
+    - Operations guides moved to `docs/operations/` (runbook, production checklist, troubleshooting, duplicate diagnosis)
+    - Deployment guides moved to `docs/deployment/` (Supabase setup, quick start, deployment options)
+    - Historical files archived in `docs/archive/` (data structure analysis)
+  - **Script Organization**: Moved all utility scripts from root to `scripts/` directory
+    - `check_duplicates.py` → `scripts/check_duplicates.py`
+    - `find_missing_meetings.py` → `scripts/find_missing_meetings.py`
+    - `run_migration.py` → `scripts/run_migration.py`
+    - `verify_schema.py` → `scripts/verify_schema.py`
+  - **File Naming**: Converted documentation files to kebab-case naming convention
+    - `OPERATIONS_RUNBOOK.md` → `docs/operations/runbook.md`
+    - `PRODUCTION_CHECKLIST.md` → `docs/operations/production-checklist.md`
+    - `TROUBLESHOOTING.md` → `docs/operations/troubleshooting.md`
+    - `DUPLICATE_DIAGNOSIS.md` → `docs/operations/duplicate-diagnosis.md`
+    - `SUPABASE_SETUP_GUIDE.md` → `docs/deployment/supabase-setup.md`
+    - `SUPABASE_QUICK_START.md` → `docs/deployment/supabase-quickstart.md`
+    - `SUPABASE_DEPLOYMENT_OPTIONS.md` → `docs/deployment/deployment-options.md`
+  - **Documentation Updates**: Updated all cross-references in README.md and documentation files to reflect new paths
+  - **Documentation Index**: Created `docs/README.md` as comprehensive documentation index with navigation
+
+### Added
+- **Documentation Index**: Created `docs/README.md` with organized navigation and technical term definitions
+- **Archive Directory**: Created `docs/archive/` for historical and analysis files
+
+### Removed
+- **Log Files**: Removed log files from git tracking (already gitignored, now explicitly removed)
+  - `ingestion.log`, `local_ingestion_flexible.log`, `local_ingestion.log` (gitignored, not tracked)
+
+### Changed (continued)
 - **Deployment Method**: Migrated from Docker containerization to GitHub Actions workflow
   - Removed Docker-specific deployment instructions
   - Added GitHub Actions workflow (`.github/workflows/ingest-meetings.yml`)

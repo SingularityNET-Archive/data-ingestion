@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2025-11-30
 
 ## Active Technologies
+- Python 3.8+ (existing project) + Git (for version control operations), Markdown (for documentation), Python (for utility scripts) (002-repo-cleanup)
+- N/A (file system reorganization only) (002-repo-cleanup)
 
 - Python 3.8+ + FastAPI, asyncpg (or psycopg2), httpx (or requests), pydantic (for validation), python-dotenv (001-meeting-summaries-ingestion)
 
@@ -34,6 +36,7 @@ mypy src/
 Python 3.8+: Follow standard conventions
 
 ## Recent Changes
+- 002-repo-cleanup: Added Python 3.8+ (existing project) + Git (for version control operations), Markdown (for documentation), Python (for utility scripts)
 
 - 001-meeting-summaries-ingestion: Added Python 3.8+ + FastAPI, asyncpg (or psycopg2), httpx (or requests), pydantic (for validation), python-dotenv
 

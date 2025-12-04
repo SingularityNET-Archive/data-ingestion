@@ -204,3 +204,4 @@ psql $DATABASE_URL -f scripts/find_duplicates.sql
 
 4. Based on findings, implement appropriate fixes from the recommendations above.
 
+
