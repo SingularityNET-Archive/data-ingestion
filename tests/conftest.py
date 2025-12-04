@@ -178,3 +178,37 @@ def reset_logging():
     for logger_name in logging.Logger.manager.loggerDict:
         logger = logging.getLogger(logger_name)
         logger.handlers.clear()
+
+
+@pytest.fixture(autouse=True)
+def reset_db_pool():
+    """Reset database connection pool before each test (for dashboard tests)."""
+    # Reset pool before test
+    try:
+        from backend.app.db.connection import reset_pool
+        reset_pool()
+    except (ImportError, AttributeError):
+        # If backend module is not available, skip
+        pass
+    
+    yield
+    
+    # Reset pool after test
+    try:
+        from backend.app.db.connection import reset_pool, close_db_pool
+        import asyncio
+        # Try to close pool if event loop is available
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is running, schedule close
+                asyncio.create_task(close_db_pool())
+            else:
+                loop.run_until_complete(close_db_pool())
+        except (RuntimeError, AttributeError):
+            # If no event loop, just reset
+            pass
+        reset_pool()
+    except (ImportError, AttributeError):
+        # If backend module is not available, skip
+        pass

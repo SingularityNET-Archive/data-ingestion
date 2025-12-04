@@ -49,6 +49,11 @@ async def export_meetings(
 
     try:
         pool = await get_db_pool()
+        if pool is None:
+            raise HTTPException(
+                status_code=500,
+                detail="DATABASE_URL not configured",
+            )
         async with pool.acquire() as conn:
             # Build WHERE clause (same as meetings list)
             where_conditions = []
@@ -167,8 +172,15 @@ async def export_meetings(
     except HTTPException:
         raise
     except Exception as e:
+        error_msg = str(e)
+        # Handle common async/event loop errors gracefully
+        if "Event loop is closed" in error_msg or "another operation is in progress" in error_msg:
+            raise HTTPException(
+                status_code=503,
+                detail="Service temporarily unavailable. Please try again.",
+            )
         raise HTTPException(
             status_code=500,
-            detail=f"Error generating export: {str(e)}",
+            detail=f"Error generating export: {error_msg}",
         )
 

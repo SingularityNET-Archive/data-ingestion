@@ -13,11 +13,12 @@ def client():
     import sys
     from pathlib import Path
     
-    # Add backend/app to path
-    backend_path = Path(__file__).parent.parent.parent / "backend" / "app"
-    sys.path.insert(0, str(backend_path))
+    # Add project root to path so we can import backend.app as a package
+    project_root = Path(__file__).parent.parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
     
-    from main import app
+    from backend.app.main import app
     return TestClient(app)
 
 

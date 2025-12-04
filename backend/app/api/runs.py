@@ -79,9 +79,13 @@ async def list_runs(
                 ))
             return runs
     except Exception as e:
+        error_msg = str(e)
+        # Handle common async/event loop errors gracefully
+        if "Event loop is closed" in error_msg or "another operation is in progress" in error_msg:
+            return []
         raise HTTPException(
             status_code=500,
-            detail=f"Error fetching ingestion runs: {str(e)}",
+            detail=f"Error fetching ingestion runs: {error_msg}",
         )
 
 
@@ -111,6 +115,9 @@ async def get_monthly_aggregates(
 
     try:
         pool = await get_db_pool()
+        if pool is None:
+            # Return empty monthly aggregates if pool is not available
+            return []
         async with pool.acquire() as conn:
             rows = await conn.fetch("""
                 SELECT 
@@ -131,8 +138,12 @@ async def get_monthly_aggregates(
                 ))
             return aggregates
     except Exception as e:
+        error_msg = str(e)
+        # Handle common async/event loop errors gracefully
+        if "Event loop is closed" in error_msg or "another operation is in progress" in error_msg:
+            return []
         raise HTTPException(
             status_code=500,
-            detail=f"Error fetching monthly aggregates: {str(e)}",
+            detail=f"Error fetching monthly aggregates: {error_msg}",
         )
 

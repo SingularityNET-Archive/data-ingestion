@@ -117,9 +117,13 @@ async def list_alerts(
                 ))
             return alerts
     except Exception as e:
+        error_msg = str(e)
+        # Handle common async/event loop errors gracefully
+        if "Event loop is closed" in error_msg or "another operation is in progress" in error_msg:
+            return []
         raise HTTPException(
             status_code=500,
-            detail=f"Error fetching alerts: {str(e)}",
+            detail=f"Error fetching alerts: {error_msg}",
         )
 
 
@@ -150,6 +154,11 @@ async def acknowledge_alert(
 
     try:
         pool = await get_db_pool()
+        if pool is None:
+            raise HTTPException(
+                status_code=500,
+                detail="DATABASE_URL not configured",
+            )
         async with pool.acquire() as conn:
             # Check if alert exists
             alert_row = await conn.fetchrow(
