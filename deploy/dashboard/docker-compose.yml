@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  dashboard-backend:
+    build:
+      context: ../..
+      dockerfile: deploy/dashboard/Dockerfile
+    container_name: ingestion-dashboard-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - DEV_AUTH_BYPASS=${DEV_AUTH_BYPASS:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+    volumes:
+      # Mount .env file if needed (for local development)
+      - ../../.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - dashboard-network
+
+  dashboard-frontend:
+    build:
+      context: ../../frontend/web
+      dockerfile: Dockerfile
+    container_name: ingestion-dashboard-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8000}
+    depends_on:
+      - dashboard-backend
+    restart: unless-stopped
+    networks:
+      - dashboard-network
+
+networks:
+  dashboard-network:
+    driver: bridge
+
