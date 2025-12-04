@@ -130,6 +130,8 @@ As a **Project Manager**, I want to view ingestion volume and failure rate trend
 
 - Q: Q1 - Access Control → A: Option A - Read-only + Admin (Read-only users can view KPIs, lists, error logs, and export; Admins can also acknowledge alerts, view internal links, and perform admin-only actions). Applied to `FR-010` and Assumptions.
 
+- Q: Q2 - Data Latency SLA → A: Option B - 5 minutes (Default). Dashboard data should be considered "near real-time" if visible within 5 minutes of ingestion; reflected in Assumptions and `SC-004`.
+
 
 ## Questions / Clarifications (max 3)
 
