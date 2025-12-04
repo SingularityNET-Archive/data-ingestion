@@ -212,11 +212,38 @@ async def _run_ingestion(
 
                 # Ingest records
                 if ingestion_service and valid_records:
-                    stats = await ingestion_service.process_meetings(
-                        valid_records, url, dry_run, original_json_records=json_data
+                    logger.info(
+                        f"Calling process_meetings with {len(valid_records)} valid records",
+                        extra={
+                            "source_url": url,
+                            "valid_record_count": len(valid_records),
+                            "dry_run": dry_run,
+                            "ingestion_service_exists": ingestion_service is not None,
+                        },
                     )
-                    total_stats["records_inserted"] += stats["succeeded"]
-                    total_stats["sources_processed"] += 1
+                    try:
+                        logger.debug(f"About to await process_meetings...")
+                        stats = await ingestion_service.process_meetings(
+                            valid_records, url, dry_run, original_json_records=json_data
+                        )
+                        logger.debug(f"process_meetings await completed")
+                        logger.info(
+                            f"process_meetings completed: {stats}",
+                            extra={"source_url": url, "stats": stats},
+                        )
+                        total_stats["records_inserted"] += stats["succeeded"]
+                        total_stats["sources_processed"] += 1
+                    except Exception as e:
+                        logger.error(
+                            f"Exception in process_meetings: {e}",
+                            extra={
+                                "source_url": url,
+                                "error": str(e),
+                                "error_type": type(e).__name__,
+                            },
+                            exc_info=True,
+                        )
+                        raise
                 elif dry_run:
                     # In dry-run mode, just count valid records
                     total_stats["records_inserted"] += len(valid_records)

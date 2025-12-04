@@ -48,17 +48,31 @@ async def run_migration(
                 "DATABASE_URL must be provided either as argument or environment variable"
             )
 
-    # Extract password if provided separately
+    # Extract password if provided separately (only if password not already in URL)
     db_password = os.getenv("DB_PASSWORD")
-    if db_password and "password" not in database_url.lower():
-        if "@" in database_url:
-            parts = database_url.split("@")
-            if len(parts) == 2:
-                database_url = f"{parts[0]}:{db_password}@{parts[1]}"
+    # Check if password is missing from URL (look for :password@ pattern or if no colon before @)
+    if db_password and ":" in database_url and "@" in database_url:
+        # Check if there's already a password between : and @
+        url_parts = database_url.split("@")
+        if len(url_parts) == 2:
+            user_pass_part = url_parts[0].split("://")[-1] if "://" in url_parts[0] else url_parts[0]
+            if ":" not in user_pass_part:
+                # No password in URL, add it
+                database_url = f"{url_parts[0]}:{db_password}@{url_parts[1]}"
 
     # Connect to database and execute script
     logger.info("Connecting to database...")
-    conn = await asyncpg.connect(database_url)
+    # Disable prepared statements for Supabase transaction pooler (port 6543)
+    # Transaction pooler doesn't support PREPARE statements
+    is_transaction_pooler = ":6543" in database_url or "pooler.supabase.com" in database_url
+    connect_kwargs = {}
+    if is_transaction_pooler:
+        # Disable prepared statement cache for pgbouncer transaction mode
+        connect_kwargs["statement_cache_size"] = 0
+        connect_kwargs["server_settings"] = {
+            "server_prepared_statement_cache_size": "0"
+        }
+    conn = await asyncpg.connect(database_url, **connect_kwargs)
 
     try:
         logger.info("Executing schema migration...")
@@ -98,15 +112,28 @@ async def verify_schema(database_url: Optional[str] = None) -> bool:
                 "DATABASE_URL must be provided either as argument or environment variable"
             )
 
-    # Extract password if provided separately
+    # Extract password if provided separately (only if password not already in URL)
     db_password = os.getenv("DB_PASSWORD")
-    if db_password and "password" not in database_url.lower():
-        if "@" in database_url:
-            parts = database_url.split("@")
-            if len(parts) == 2:
-                database_url = f"{parts[0]}:{db_password}@{parts[1]}"
+    # Check if password is missing from URL (look for :password@ pattern or if no colon before @)
+    if db_password and ":" in database_url and "@" in database_url:
+        # Check if there's already a password between : and @
+        url_parts = database_url.split("@")
+        if len(url_parts) == 2:
+            user_pass_part = url_parts[0].split("://")[-1] if "://" in url_parts[0] else url_parts[0]
+            if ":" not in user_pass_part:
+                # No password in URL, add it
+                database_url = f"{url_parts[0]}:{db_password}@{url_parts[1]}"
 
-    conn = await asyncpg.connect(database_url)
+    # Disable prepared statements for Supabase transaction pooler (port 6543)
+    is_transaction_pooler = ":6543" in database_url or "pooler.supabase.com" in database_url
+    connect_kwargs = {}
+    if is_transaction_pooler:
+        # Disable prepared statement cache for pgbouncer transaction mode
+        connect_kwargs["statement_cache_size"] = 0
+        connect_kwargs["server_settings"] = {
+            "server_prepared_statement_cache_size": "0"
+        }
+    conn = await asyncpg.connect(database_url, **connect_kwargs)
 
     try:
         query = """

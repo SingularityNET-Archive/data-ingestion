@@ -194,3 +194,4 @@ class TestLogLevel:
         assert LogLevel.ERROR == "ERROR"
         assert LogLevel.CRITICAL == "CRITICAL"
 
+

@@ -142,11 +142,77 @@ class AgendaItem(BaseModel):
                 raise ValueError(f"Invalid UUID format: {v}")
         return v
 
-    @field_validator("actionItems", "decisionItems", "discussionPoints")
+    @field_validator("actionItems", mode="before")
     @classmethod
-    def validate_nested_collections(cls, v):
+    def validate_action_items(cls, v):
+        """
+        Normalize actionItems and filter out invalid entries.
+        
+        Filters out actionItems that don't have a 'text' field, as text is required.
+        """
+        if v is None:
+            return []
+        
+        if not isinstance(v, list):
+            return v
+        
+        # Filter out items without 'text' field
+        filtered = []
+        for item in v:
+            if isinstance(item, dict):
+                # Only include if it has a 'text' field or can be converted
+                if "text" in item:
+                    filtered.append(item)
+                # Skip items without text (they're invalid)
+            else:
+                # Non-dict items, skip
+                pass
+        
+        return filtered
+
+    @field_validator("decisionItems")
+    @classmethod
+    def validate_decision_items(cls, v):
         """Ensure empty arrays are preserved as [] not None."""
         return v if v is not None else []
+
+    @field_validator("discussionPoints", mode="before")
+    @classmethod
+    def validate_discussion_points(cls, v):
+        """
+        Normalize discussionPoints to handle both string and object formats.
+        
+        Accepts:
+        - Array of strings: ["Point 1", "Point 2"]
+        - Array of objects: [{"point": "Point 1"}, {"point": "Point 2"}]
+        - Mixed format (converts all to objects)
+        """
+        if v is None:
+            return []
+        
+        if not isinstance(v, list):
+            return v
+        
+        normalized = []
+        for item in v:
+            if isinstance(item, str):
+                # Convert string to DiscussionPoint object format
+                normalized.append({"point": item})
+            elif isinstance(item, dict):
+                # Already an object, check if it has 'point' field
+                if "point" in item:
+                    normalized.append(item)
+                elif len(item) == 1:
+                    # Single key-value pair, assume the value is the point
+                    normalized.append({"point": list(item.values())[0]})
+                else:
+                    # Try to use the dict as-is (might fail validation later)
+                    normalized.append(item)
+            else:
+                # Other types, try to convert to string
+                normalized.append({"point": str(item)})
+        
+        return normalized
 
 
 class MeetingSummary(BaseModel):

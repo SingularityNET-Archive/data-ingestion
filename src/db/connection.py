@@ -25,9 +25,21 @@ class DatabaseConnection:
 
         # Extract password if provided separately
         db_password = os.getenv("DB_PASSWORD")
-        if db_password and "password" not in self.database_url.lower():
-            # Insert password into connection string if not present
+        if db_password:
+            # Check if password is already in the connection string
+            # Format: postgresql://user:password@host or postgresql://user@host
+            has_password_in_url = False
             if "@" in self.database_url:
+                # Check if there's a colon before the @ (indicating password is present)
+                user_part = self.database_url.split("@")[0]
+                # Remove protocol prefix to check user:password part
+                if "://" in user_part:
+                    auth_part = user_part.split("://", 1)[1]
+                    # If there's a colon in the auth part, password is already present
+                    has_password_in_url = ":" in auth_part
+            
+            # Insert password into connection string if not present
+            if not has_password_in_url and "@" in self.database_url:
                 # Format: postgresql://user@host:port/database
                 parts = self.database_url.split("@")
                 if len(parts) == 2:
@@ -53,11 +65,24 @@ class DatabaseConnection:
             Connection pool instance
         """
         if self._pool is None:
+            # Disable prepared statements for Supabase transaction pooler (port 6543)
+            # Transaction pooler doesn't support PREPARE statements
+            is_transaction_pooler = ":6543" in self.database_url or "pooler.supabase.com" in self.database_url
+            pool_kwargs = {
+                "min_size": min_size,
+                "max_size": max_size,
+                "command_timeout": command_timeout,
+            }
+            if is_transaction_pooler:
+                # Disable prepared statement cache for pgbouncer transaction mode
+                pool_kwargs["statement_cache_size"] = 0
+                pool_kwargs["server_settings"] = {
+                    "server_prepared_statement_cache_size": "0"
+                }
+            
             self._pool = await asyncpg.create_pool(
                 self.database_url,
-                min_size=min_size,
-                max_size=max_size,
-                command_timeout=command_timeout,
+                **pool_kwargs,
             )
         return self._pool
 

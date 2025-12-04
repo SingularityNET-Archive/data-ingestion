@@ -50,6 +50,25 @@ class IngestionService:
         Returns:
             Dictionary with processing statistics
         """
+        # Log immediately at function entry - use print as backup
+        import sys
+        print(f"[DEBUG] process_meetings ENTRY: {len(meetings)} meetings", file=sys.stderr, flush=True)
+        try:
+            logger.info(
+                f"process_meetings ENTRY: {len(meetings)} meetings, dry_run={dry_run}",
+                extra={
+                    "source_url": source_url,
+                    "meeting_count": len(meetings),
+                    "dry_run": dry_run,
+                    "has_original_json": original_json_records is not None,
+                },
+            )
+        except Exception as e:
+            # If logging fails, at least print to stderr
+            print(f"ERROR: Failed to log in process_meetings: {e}", file=sys.stderr, flush=True)
+            raise
+        
+        print(f"[DEBUG] Initializing stats...", file=sys.stderr, flush=True)
         stats = {
             "processed": 0,
             "succeeded": 0,
@@ -60,21 +79,45 @@ class IngestionService:
         if not meetings:
             logger.info(f"No meetings to process from {source_url}")
             return stats
-
-        # Extract and UPSERT all unique workgroups first
+        
+        print(f"[DEBUG] Starting workgroup extraction...", file=sys.stderr, flush=True)
+        logger.info(f"Extracting workgroups from {len(meetings)} meetings...")
+        
+        print(f"[DEBUG] Calling extract_unique_workgroups...", file=sys.stderr, flush=True)
         workgroups = self.schema_manager.extract_unique_workgroups(meetings, original_json_records)
+        print(f"[DEBUG] Workgroup extraction completed: {len(workgroups)} workgroups", file=sys.stderr, flush=True)
+        logger.info(f"Extracted {len(workgroups)} unique workgroups")
 
         if not dry_run:
+            print(f"[DEBUG] Starting workgroup UPSERT for {len(workgroups)} workgroups...", file=sys.stderr, flush=True)
+            logger.info(f"Starting workgroup UPSERT for {len(workgroups)} workgroups...")
+            print(f"[DEBUG] About to acquire database connection...", file=sys.stderr, flush=True)
             async with self.db_connection.acquire() as conn:
+                print(f"[DEBUG] Database connection acquired for workgroup UPSERT", file=sys.stderr, flush=True)
+                logger.debug("Database connection acquired for workgroup UPSERT")
+                print(f"[DEBUG] Calling upsert_workgroups...", file=sys.stderr, flush=True)
                 await self.schema_manager.upsert_workgroups(conn, workgroups)
-                stats["workgroups_created"] = len(workgroups)
+                print(f"[DEBUG] upsert_workgroups completed", file=sys.stderr, flush=True)
+                logger.debug("Workgroup UPSERT completed")
+            print(f"[DEBUG] Exited database connection context", file=sys.stderr, flush=True)
+            stats["workgroups_created"] = len(workgroups)
+            logger.info(f"Workgroups processed: {stats['workgroups_created']}")
 
         # Process each meeting in atomic transaction
         total_meetings = len(meetings)
+        print(f"[DEBUG] Starting to process {total_meetings} meetings", file=sys.stderr, flush=True)
+        logger.info(
+            f"Starting to process {total_meetings} meetings from {source_url}",
+            extra={
+                "source_url": source_url,
+                "total_records": total_meetings,
+            },
+        )
         for idx, meeting in enumerate(meetings, 1):
             try:
                 # Progress logging for large datasets
-                if idx % 10 == 0 or idx == total_meetings:
+                if idx % 10 == 0 or idx == total_meetings or idx == 1:
+                    print(f"[DEBUG] Processing meeting {idx}/{total_meetings}", file=sys.stderr, flush=True)
                     logger.info(
                         f"Processing meeting {idx}/{total_meetings} from {source_url}",
                         extra={
@@ -88,10 +131,38 @@ class IngestionService:
                     self._validate_meeting_structure(meeting)
                     stats["succeeded"] += 1
                 else:
-                    async with self.db_connection.acquire() as conn:
-                        async with conn.transaction():
-                            await self._process_single_meeting(conn, meeting, source_url)
-                            stats["succeeded"] += 1
+                    print(f"[DEBUG] About to process meeting {idx} (not dry-run)", file=sys.stderr, flush=True)
+                    try:
+                        print(f"[DEBUG] Acquiring connection for meeting {idx}...", file=sys.stderr, flush=True)
+                        async with self.db_connection.acquire() as conn:
+                            print(f"[DEBUG] Connection acquired, starting transaction for meeting {idx}...", file=sys.stderr, flush=True)
+                            async with conn.transaction():
+                                print(f"[DEBUG] Transaction started, calling _process_single_meeting for meeting {idx}...", file=sys.stderr, flush=True)
+                                await self._process_single_meeting(conn, meeting, source_url)
+                                print(f"[DEBUG] _process_single_meeting completed for meeting {idx}", file=sys.stderr, flush=True)
+                                stats["succeeded"] += 1
+                            print(f"[DEBUG] Transaction committed for meeting {idx}", file=sys.stderr, flush=True)
+                        print(f"[DEBUG] Connection released for meeting {idx}", file=sys.stderr, flush=True)
+                    except Exception as e:
+                        print(f"[DEBUG] Exception processing meeting {idx}: {e}", file=sys.stderr, flush=True)
+                        # Log and re-raise to be caught by outer exception handler
+                        meeting_id_str = "unknown"
+                        try:
+                            # Try to get meeting ID for logging
+                            if hasattr(meeting, "id") and meeting.id:
+                                meeting_id_str = str(meeting.id)
+                        except:
+                            pass
+                        logger.error(
+                            f"Error processing meeting {meeting_id_str} (idx {idx}): {e}",
+                            extra={
+                                "source_url": source_url,
+                                "meeting_index": idx,
+                                "error": str(e),
+                                "error_type": type(e).__name__,
+                            },
+                        )
+                        raise
 
                 stats["processed"] += 1
 
@@ -184,15 +255,10 @@ class IngestionService:
             meeting: Meeting summary model
             source_url: Source URL for logging
         """
-        # Generate meeting ID if not present
-        meeting_id = uuid.uuid4()
-        if hasattr(meeting, "id") and meeting.id:
-            try:
-                meeting_id = uuid.UUID(meeting.id)
-            except (ValueError, AttributeError):
-                pass
-
+        import sys
+        print(f"[DEBUG] _process_single_meeting ENTRY", file=sys.stderr, flush=True)
         workgroup_id = uuid.UUID(meeting.workgroup_id)
+        print(f"[DEBUG] Parsed workgroup_id: {workgroup_id}", file=sys.stderr, flush=True)
 
         # Parse meeting date (UTF-8 encoding support)
         date_str = str(meeting.meetingInfo.date).encode("utf-8").decode("utf-8")
@@ -200,6 +266,49 @@ class IngestionService:
         if not meeting_date:
             raise ValueError(f"Invalid date format: {meeting.meetingInfo.date}")
         meeting_date = meeting_date.date()
+
+        # Generate deterministic meeting ID if not present in source
+        # Use a hash of the meeting content to ensure uniqueness while preventing duplicates
+        # This ensures the same meeting always gets the same ID, preventing duplicates
+        meeting_id = None
+        if hasattr(meeting, "id") and meeting.id:
+            try:
+                meeting_id = uuid.UUID(meeting.id)
+            except (ValueError, AttributeError):
+                pass
+        
+        if not meeting_id:
+            # Generate deterministic UUID v5 based on workgroup_id + date + key fields
+            # Use host and purpose as additional uniqueness factors to distinguish
+            # between different meetings that happen to have the same workgroup_id + date
+            import hashlib
+            
+            # Generate ID based on workgroup_id + date + key identifying fields
+            # This ensures different meetings with same workgroup_id + date get different IDs
+            host_str = str(meeting.meetingInfo.host) if meeting.meetingInfo.host else ""
+            purpose_str = str(meeting.meetingInfo.purpose) if meeting.meetingInfo.purpose else ""
+            # Include agenda item count as additional uniqueness factor
+            agenda_count = len(meeting.agendaItems) if meeting.agendaItems else 0
+            
+            # Create a stable hash from key fields
+            key_fields = f"{workgroup_id}:{meeting_date}:{host_str}:{purpose_str}:{agenda_count}"
+            content_hash = hashlib.sha256(key_fields.encode('utf-8')).hexdigest()[:16]
+            
+            MEETING_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")  # DNS namespace
+            deterministic_string = f"{workgroup_id}:{meeting_date}:{content_hash}"
+            meeting_id = uuid.uuid5(MEETING_NAMESPACE, deterministic_string)
+            
+            # Check if this ID already exists (for logging)
+            existing = await conn.fetchrow("SELECT id FROM meetings WHERE id = $1", meeting_id)
+            if existing:
+                logger.debug(
+                    f"Meeting ID {meeting_id} already exists (will be updated via UPSERT)",
+                    extra={
+                        "meeting_id": str(meeting_id),
+                        "workgroup_id": str(workgroup_id),
+                        "date": str(meeting_date),
+                    },
+                )
 
         # Extract normalized fields (UTF-8 encoding support for Unicode/emoji)
         meeting_type = str(meeting.type).encode("utf-8").decode("utf-8") if meeting.type else None
@@ -230,8 +339,11 @@ class IngestionService:
         timestamped_video = meeting.meetingInfo.timestampedVideo  # JSONB handles Unicode
         tags = meeting.tags or {}  # JSONB handles Unicode
 
-        # Convert to dict for JSONB storage
-        raw_json = meeting.model_dump()
+        # Convert to dict for JSONB storage (reuse cached version if available from ID generation)
+        if hasattr(meeting, "_cached_model_dump"):
+            raw_json = meeting._cached_model_dump
+        else:
+            raw_json = meeting.model_dump()
 
         # Check for circular references (max depth check)
         if detect_circular_reference(raw_json, max_depth=10):
@@ -265,13 +377,19 @@ class IngestionService:
 
         # Process agenda items with nested entities
         for idx, agenda_item in enumerate(meeting.agendaItems or []):
-            # Generate agenda item ID if not present
-            agenda_item_id = uuid.uuid4()
+            # Generate deterministic agenda item ID if not present
+            agenda_item_id = None
             if agenda_item.id:
                 try:
                     agenda_item_id = uuid.UUID(agenda_item.id)
                 except (ValueError, AttributeError):
                     pass
+            
+            if not agenda_item_id:
+                # Generate deterministic UUID based on meeting_id + order_index
+                AGENDA_ITEM_NAMESPACE = uuid.UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8")
+                deterministic_string = f"{meeting_id}:agenda:{idx}"
+                agenda_item_id = uuid.uuid5(AGENDA_ITEM_NAMESPACE, deterministic_string)
 
             # Extract normalized fields
             status = agenda_item.status
@@ -288,13 +406,19 @@ class IngestionService:
             )
 
             # Process action items
-            for action_item in agenda_item.actionItems or []:
-                action_item_id = uuid.uuid4()
+            for action_idx, action_item in enumerate(agenda_item.actionItems or []):
+                action_item_id = None
                 if action_item.id:
                     try:
                         action_item_id = uuid.UUID(action_item.id)
                     except (ValueError, AttributeError):
                         pass
+                
+                if not action_item_id:
+                    # Generate deterministic UUID based on agenda_item_id + order_index
+                    ACTION_ITEM_NAMESPACE = uuid.UUID("6ba7b812-9dad-11d1-80b4-00c04fd430c8")
+                    deterministic_string = f"{agenda_item_id}:action:{action_idx}"
+                    action_item_id = uuid.uuid5(ACTION_ITEM_NAMESPACE, deterministic_string)
 
                 # Parse due date
                 due_date = None
@@ -328,13 +452,19 @@ class IngestionService:
                 )
 
             # Process decision items
-            for decision_item in agenda_item.decisionItems or []:
-                decision_item_id = uuid.uuid4()
+            for decision_idx, decision_item in enumerate(agenda_item.decisionItems or []):
+                decision_item_id = None
                 if decision_item.id:
                     try:
                         decision_item_id = uuid.UUID(decision_item.id)
                     except (ValueError, AttributeError):
                         pass
+                
+                if not decision_item_id:
+                    # Generate deterministic UUID based on agenda_item_id + order_index
+                    DECISION_ITEM_NAMESPACE = uuid.UUID("6ba7b813-9dad-11d1-80b4-00c04fd430c8")
+                    deterministic_string = f"{agenda_item_id}:decision:{decision_idx}"
+                    decision_item_id = uuid.uuid5(DECISION_ITEM_NAMESPACE, deterministic_string)
 
                 # UTF-8 encoding support for text fields
                 decision_text = str(decision_item.decision).encode("utf-8").decode("utf-8")
@@ -360,13 +490,19 @@ class IngestionService:
                 )
 
             # Process discussion points
-            for discussion_point in agenda_item.discussionPoints or []:
-                discussion_point_id = uuid.uuid4()
+            for discussion_idx, discussion_point in enumerate(agenda_item.discussionPoints or []):
+                discussion_point_id = None
                 if discussion_point.id:
                     try:
                         discussion_point_id = uuid.UUID(discussion_point.id)
                     except (ValueError, AttributeError):
                         pass
+                
+                if not discussion_point_id:
+                    # Generate deterministic UUID based on agenda_item_id + order_index
+                    DISCUSSION_POINT_NAMESPACE = uuid.UUID("6ba7b814-9dad-11d1-80b4-00c04fd430c8")
+                    deterministic_string = f"{agenda_item_id}:discussion:{discussion_idx}"
+                    discussion_point_id = uuid.uuid5(DISCUSSION_POINT_NAMESPACE, deterministic_string)
 
                 # UTF-8 encoding support for text fields
                 point_text = str(discussion_point.point).encode("utf-8").decode("utf-8")
