@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: Ingestion Dashboard API
+  version: 0.1.0
+  description: Read-only API for KPIs, ingested meetings, ingestion runs, error logs, and exports.
+servers:
+  - url: /api
+paths:
+  /kpis:
+    get:
+      summary: Get operational KPIs
+      responses:
+        '200':
+          description: KPI response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_ingested:
+                    type: integer
+                  sources_count:
+                    type: integer
+                  success_rate:
+                    type: number
+                  duplicates_avoided:
+                    type: integer
+                  last_run_timestamp:
+                    type: string
+                    format: date-time
+  /meetings:
+    get:
+      summary: List ingested meetings (paginated)
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: page_size
+          schema:
+            type: integer
+        - in: query
+          name: workgroup
+          schema:
+            type: string
+        - in: query
+          name: source
+          schema:
+            type: string
+        - in: query
+          name: date_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: date_to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Paginated list
+  /meetings/{id}:
+    get:
+      summary: Get meeting detail (raw JSON + normalized fields)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Meeting detail
+  /ingestion-runs:
+    get:
+      summary: List ingestion runs
+      responses:
+        '200':
+          description: List of runs
+  /error-logs:
+    get:
+      summary: List structured error logs
+      parameters:
+        - in: query
+          name: error_type
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of error logs
+  /exports:
+    post:
+      summary: Request an export (CSV or JSON)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [csv,json]
+                query:
+                  type: object
+      responses:
+        '202':
+          description: Export accepted (async) or completed (sync)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
