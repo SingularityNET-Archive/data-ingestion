@@ -103,6 +103,7 @@ async def verify_schema(database_url: Optional[str] = None) -> bool:
         "action_items",
         "decision_items",
         "discussion_points",
+        "ingestion_runs",
     ]
 
     if database_url is None:

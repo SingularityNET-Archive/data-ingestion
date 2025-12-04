@@ -11,6 +11,7 @@ from src.lib.logger import setup_logger
 from src.services.ingestion_service import IngestionService
 from src.services.json_downloader import JSONDownloader
 from src.services.json_validator import JSONValidator
+import hashlib
 
 # Default URLs from specification
 DEFAULT_URLS = [
@@ -211,6 +212,26 @@ async def _run_ingestion(
                 )
 
                 # Ingest records
+                # Compute checksum of source payload so we can manifest processed sources
+                checksum = hashlib.sha256(
+                    __import__("json").dumps(json_data, sort_keys=True).encode("utf-8")
+                ).hexdigest()
+
+                # Check manifest to skip already-processed identical sources
+                if ingestion_service and valid_records:
+                    # Acquire a short-lived connection to check manifest
+                    async with db_connection.acquire() as manifest_conn:
+                        already = await ingestion_service.schema_manager.is_source_processed(
+                            manifest_conn, url, checksum
+                        )
+                    if already:
+                        logger.info(
+                            f"Skipping source (already processed with same checksum): {url}",
+                            extra={"source_url": url, "checksum": checksum},
+                        )
+                        total_stats["sources_processed"] += 1
+                        continue
+
                 if ingestion_service and valid_records:
                     logger.info(
                         f"Calling process_meetings with {len(valid_records)} valid records",
@@ -232,6 +253,12 @@ async def _run_ingestion(
                             extra={"source_url": url, "stats": stats},
                         )
                         total_stats["records_inserted"] += stats["succeeded"]
+                        # If processing succeeded (and not dry-run), record the ingestion run manifest
+                        if not dry_run and stats.get("succeeded", 0) > 0:
+                            async with db_connection.acquire() as manifest_conn:
+                                await ingestion_service.schema_manager.record_ingestion_run(
+                                    manifest_conn, url, checksum, stats.get("succeeded", 0), status="completed"
+                                )
                         total_stats["sources_processed"] += 1
                     except Exception as e:
                         logger.error(

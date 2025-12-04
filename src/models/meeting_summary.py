@@ -159,13 +159,16 @@ class AgendaItem(BaseModel):
         # Filter out items without 'text' field
         filtered = []
         for item in v:
+            # dicts (raw JSON) - include only if they contain required 'text'
             if isinstance(item, dict):
-                # Only include if it has a 'text' field or can be converted
                 if "text" in item:
                     filtered.append(item)
-                # Skip items without text (they're invalid)
+                # Skip dicts without text
+            # pydantic model instances (e.g., ActionItem) - keep as-is
+            elif isinstance(item, BaseModel):
+                filtered.append(item)
             else:
-                # Non-dict items, skip
+                # Other types are skipped
                 pass
         
         return filtered

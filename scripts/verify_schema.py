@@ -9,8 +9,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+# Add src to path (project root)/src
+# scripts/ is one level below project root, so use parent.parent
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.db.migrations import verify_schema
 

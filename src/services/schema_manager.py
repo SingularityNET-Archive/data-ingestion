@@ -117,3 +117,62 @@ class SchemaManager:
 
         print(f"[DEBUG] upsert_workgroups COMPLETE: {len(workgroups)} workgroups", file=sys.stderr, flush=True)
         logger.info(f"Successfully UPSERTed {len(workgroups)} workgroups")
+
+    @staticmethod
+    async def is_source_processed(conn: asyncpg.Connection, source_url: str, checksum: str) -> bool:
+        """
+        Check whether a source with the given checksum has already been processed.
+
+        Args:
+            conn: Database connection
+            source_url: Source URL
+            checksum: SHA256 hex checksum of the source payload
+
+        Returns:
+            True if an entry exists with status 'completed', False otherwise
+        """
+        try:
+            row = await conn.fetchrow(
+                "SELECT status FROM ingestion_runs WHERE source_url = $1 AND checksum = $2 LIMIT 1",
+                source_url,
+                checksum,
+            )
+            if not row:
+                return False
+            return str(row["status"]).lower() == "completed"
+        except Exception:
+            # On any DB error, be conservative and return False so ingestion proceeds
+            return False
+
+    @staticmethod
+    async def record_ingestion_run(
+        conn: asyncpg.Connection,
+        source_url: str,
+        checksum: str,
+        record_count: int,
+        status: str = "completed",
+    ) -> None:
+        """
+        Record or update the ingestion run manifest entry.
+
+        Uses the `upsert_ingestion_run` DB function if present, otherwise performs an INSERT ... ON CONFLICT.
+        """
+        try:
+            # Prefer DB function if available
+            await conn.execute("SELECT upsert_ingestion_run($1, $2, $3, $4)", source_url, checksum, record_count, status)
+        except Exception:
+            # Fallback to INSERT ... ON CONFLICT
+            await conn.execute(
+                """
+                INSERT INTO ingestion_runs (id, source_url, checksum, record_count, status, processed_at)
+                VALUES (uuid_generate_v4(), $1, $2, $3, $4, NOW())
+                ON CONFLICT (source_url, checksum) DO UPDATE SET
+                    record_count = EXCLUDED.record_count,
+                    status = EXCLUDED.status,
+                    processed_at = NOW()
+                """,
+                source_url,
+                checksum,
+                record_count,
+                status,
+            )

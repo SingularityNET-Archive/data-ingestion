@@ -392,6 +392,46 @@ $$ LANGUAGE plpgsql;
 
 COMMENT ON FUNCTION upsert_discussion_point IS 'UPSERT discussion point record with last-write-wins strategy';
 
+-- ============================================================================
+-- INGESTION RUNS / SOURCE MANIFEST
+-- ============================================================================
+-- Tracks processed source URLs and checksum to avoid re-processing identical sources
+CREATE TABLE IF NOT EXISTS ingestion_runs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    source_url TEXT NOT NULL,
+    checksum TEXT NOT NULL,
+    record_count INTEGER DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'completed',
+    processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+COMMENT ON TABLE ingestion_runs IS 'Records of processed ingestion sources (source URL + checksum)';
+COMMENT ON COLUMN ingestion_runs.checksum IS 'SHA256 checksum of source JSON payload (hex)';
+COMMENT ON COLUMN ingestion_runs.status IS 'Processing status: completed, failed, in_progress';
+
+-- Ensure we don't insert duplicates for the same source + checksum
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ingestion_runs_unique ON ingestion_runs (source_url, checksum);
+
+-- Upsert helper for ingestion_runs
+CREATE OR REPLACE FUNCTION upsert_ingestion_run(
+    p_source_url TEXT,
+    p_checksum TEXT,
+    p_record_count INTEGER,
+    p_status TEXT
+) RETURNS UUID AS $$
+BEGIN
+    INSERT INTO ingestion_runs (id, source_url, checksum, record_count, status, processed_at)
+    VALUES (uuid_generate_v4(), p_source_url, p_checksum, p_record_count, p_status, NOW())
+    ON CONFLICT (source_url, checksum) DO UPDATE SET
+        record_count = EXCLUDED.record_count,
+        status = EXCLUDED.status,
+        processed_at = NOW();
+    RETURN (SELECT id FROM ingestion_runs WHERE source_url = p_source_url AND checksum = p_checksum LIMIT 1);
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION upsert_ingestion_run IS 'Record or update ingestion run manifest entry';
+
 
 
 
