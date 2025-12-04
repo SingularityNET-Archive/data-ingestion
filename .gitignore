@@ -66,6 +66,9 @@ logs/
 *.bak
 *.cache
 
+# Node.js
+node_modules/
+
 # Project specific
 specs/**/checklists/
 *.pyc
