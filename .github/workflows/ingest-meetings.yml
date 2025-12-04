@@ -51,12 +51,17 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH}"
+          set -e
+          # Set PYTHONPATH to include workspace directory
+          export PYTHONPATH="${GITHUB_WORKSPACE}:${PYTHONPATH:-}"
           echo "PYTHONPATH=${PYTHONPATH}"
           echo "Current directory: $(pwd)"
           echo "GITHUB_WORKSPACE=${GITHUB_WORKSPACE}"
-          echo "Testing import:"
-          python -c "import sys; print('Python path:', sys.path); import src; print('✓ src imported successfully')" || exit 1
+          echo ""
+          echo "Verifying src module can be imported:"
+          python -c "import sys; print('sys.path:', sys.path[:3]); import src; print('✓ src imported'); import src.lib.config; print('✓ src.lib.config imported')" || (echo "❌ Import test failed" && exit 1)
+          echo ""
+          echo "Running ingestion..."
           python -m src.cli.ingest 2>&1 | tee ingestion.log
       
       - name: Upload logs
