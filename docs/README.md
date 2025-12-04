@@ -74,3 +74,4 @@ When adding or updating documentation:
 - **Specifications**: See `specs/` directory for feature specifications and implementation plans
 - **Changelog**: See [CHANGELOG.md](../CHANGELOG.md) for version history and release notes
 
+

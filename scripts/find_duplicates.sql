@@ -146,3 +146,4 @@ SELECT
     (SELECT COUNT(DISTINCT id) FROM discussion_points) as unique_discussion_point_ids;
 
 
+
